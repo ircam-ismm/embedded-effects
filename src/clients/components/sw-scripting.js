@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css } from 'lit';
 
 
 import '@ircam/simple-components/sc-button.js';
@@ -10,8 +10,7 @@ class SwScripting extends LitElement {
   static styles = css`
     :host {
       display: inline-block;
-      width: 300px;
-      height: 200px;
+      margin: 0px 20px;
     }
   `;
 
@@ -19,7 +18,6 @@ class SwScripting extends LitElement {
     super();
 
     this.pluginScripting = null;
-    this.controllerState = null;
     this.currentSynthScript = null;
   }
 
@@ -43,9 +41,6 @@ export function process(audioContext, input, output) {
     }
 
     this.currentSynthScript = await this.pluginScripting.attach(scriptName);
-    if (this.controllerState) {
-      this.controllerState.set({selectedScript: scriptName});
-    }
 
     this.currentSynthScript.onUpdate(updates => {
       if (updates.error) {
@@ -58,9 +53,7 @@ export function process(audioContext, input, output) {
 
     this.currentSynthScript.onDetach(() => {
       this.currentSynthScript = null;
-      if (this.controllerState) {
-        this.controllerState.set({selectedScript: null});
-      }
+
       this.requestUpdate();
     });
 
@@ -89,7 +82,7 @@ export function process(audioContext, input, output) {
         float: left;
         margin-left: 20px;
       ">
-        <h2 style="padding: 0; margin: 20px 0px">synth scripting</h2>
+        <h2>synth scripting</h2>
 
         <section style="margin: 8px 0">
           <sc-text
@@ -97,6 +90,7 @@ export function process(audioContext, input, output) {
             readonly
           ></sc-text>
           <sc-text
+            width="294"
             @change="${e => this.createSynthScript(e.detail.value)}"
           ></sc-text>
         </section>
@@ -104,11 +98,13 @@ export function process(audioContext, input, output) {
           return html`
             <section style="margin: 4px 0">
               <sc-button
+                width="247"
                 value="${scriptName}"
                 text="select ${scriptName}"
                 @input="${() => this.selectSynthScript(scriptName)}"
               ></sc-button>
               <sc-button
+                width="247"
                 value="${scriptName}"
                 text="delete ${scriptName}"
                 @input="${() => this.deleteSynthScript(scriptName)}"
@@ -119,7 +115,7 @@ export function process(audioContext, input, output) {
         <sc-text
           readonly
           width="500"
-          value="open the console to see possible syntax errors when editing"
+          value="cmd+s to save. open the console to see possible syntax errors when editing"
         ></sc-text>
         <sc-editor
           style="display:block"

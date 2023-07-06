@@ -1,4 +1,8 @@
 export default {
+  id: {
+    type: 'string',
+    default: ''
+  },
   vizDataWet: {
     type: 'any',
     default: null,
@@ -13,5 +17,14 @@ export default {
     type: 'any',
     default: null,
     nullable: true
+  },
+  inputGain: {
+    type: 'float',
+    default: 1.,
+  },
+  selectedScript: {
+    type: 'string',
+    default: null,
+    nullable: true,
   },
 }

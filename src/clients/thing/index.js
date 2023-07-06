@@ -7,7 +7,7 @@ import createLayout from './layout.js';
 
 import pluginScripting from '@soundworks/plugin-scripting/client.js';
 
-import { AudioContext, GainNode, mediaDevices, MediaStreamAudioSourceNode, AnalyserNode } from 'node-web-audio-api';
+import { AudioContext, GainNode, OscillatorNode, mediaDevices, MediaStreamAudioSourceNode, AnalyserNode } from 'node-web-audio-api';
 
 globalThis.AudioContext = AudioContext;
 globalThis.GainNode = GainNode;
@@ -24,7 +24,58 @@ globalThis.AnalyserNode = AnalyserNode;
 const audioContext = new AudioContext();
 
 const analysisBufferSize = 1024;
-const analysisBuffer = new Float32Array(analysisBufferSize);
+const analysisBufferDry = new Float32Array(analysisBufferSize);
+const analysisBufferWet = new Float32Array(analysisBufferSize);
+
+class ProcessNode {
+  constructor() {
+    this.input = new GainNode(audioContext);
+    this.output = new GainNode(audioContext);
+    this.gain = this.output.gain;
+    this.output.gain.value = 0;
+  }
+  
+  connectIn(source) {
+    source.connect(this.input);
+  }
+
+  connectOut(destination) {
+    this.output.connect(destination);
+  }
+
+  fadein(duration) {
+    const now = audioContext.currentTime;
+    this.output.gain.linearRampToValueAtTime(1, now + duration);
+  }
+
+  fadeout(duration) {
+    const now = audioContext.currentTime;
+    this.output.gain.linearRampToValueAtTime(0, now + duration);
+  }
+
+  disconnect() {
+    this.input.disconnect();
+    this.output.disconnect();
+  }
+
+  process(func) {
+    func(audioContext, this.input, this.output);
+  }
+}
+
+//cf https://signalsmith-audio.co.uk/writing/2021/cheap-energy-crossfade/#cross-fading-curves-amplitude-preserving-cross-fade
+function crossfadeCurves() {
+  const steps = 50;
+  const curveIn = new Float32Array(steps);
+  const curveOut = new Float32Array(steps);
+  for (let s = 0; s < steps; s++) {
+    const t = s/steps;
+    const val = t*t*t*(3-2*t);
+    curveIn[s] = val;
+    curveOut[s] = 1-curveIn[s];
+  }
+  return [curveIn, curveOut];
+}
 
 async function bootstrap() {
   /**
@@ -62,76 +113,110 @@ async function bootstrap() {
     mediaStream: microphoneStream,
   });
 
-  const analyzer = new AnalyserNode(audioContext);
+  const inputGain = new GainNode(audioContext);
 
-
-  streamSource.connect(analyzer);
-
+  const analyzerDry = new AnalyserNode(audioContext);
+  const analyzerWet = new AnalyserNode(audioContext);
+  const fadeTime = 0.02;
+  const [curveIn, curveOut] = crossfadeCurves();
+  let activeNodes = new Set();
+  
+  streamSource.connect(inputGain);
+  inputGain.connect(analyzerDry);
 
   const synthScripting = await client.pluginManager.get('scripting');
-  
   const thingState = await client.stateManager.create('thing');
   let controllerState;
-  let input;
-  let output;
+  let unsubscribeScript;
 
-  client.stateManager.observe(async (stateName, stateId) => {
-    if (stateName === 'controller') {
-      controllerState = await client.stateManager.attach(stateName, stateId);
+  inputGain.gain.value = thingState.get('inputGain');
 
-      controllerState.onUpdate(async updates => {
-        if ('selectedScript' in updates && updates.selectedScript !== null) {
-          const script = await synthScripting.attach(updates.selectedScript);
-          // console.log(script._state.getValues());
-
-          script.onUpdate(async () => {
-            const scriptImport = await script.import();
-            const processFunc = scriptImport.process;
-
-            if (input) {
-              input.disconnect();
-            }
-            if (output) {
-              output.disconnect();
-            }
-
-            input = new GainNode(audioContext);
-            output = new GainNode(audioContext);
-            streamSource.connect(input);
-            output.connect(audioContext.destination);
-
-
-            try {
-              processFunc(audioContext, input, output);
-            } catch (err) {
-              console.log(err.message);
-            }
-          }, true);
-
-          // const scriptImport = await script.import();
-          // const processFunc = scriptImport.process;
-          // processFunc(input, output);
-
-        }
-      }, true);
+  thingState.onUpdate(async updates => {
+    if ('inputGain' in updates) {
+      const now = audioContext.currentTime;
+      inputGain.gain.linearRampToValueAtTime(updates.inputGain, now + 0.05);
     }
-  });
+    if ('selectedScript' in updates) {
+      if (unsubscribeScript) {
+        unsubscribeScript();
+      }
+      if (updates.selectedScript === null) {
+        const now = audioContext.currentTime;
+
+        activeNodes.forEach(activeNode => {
+          // activeNode.fadeout(fadeTime);
+          activeNode.gain.setValueCurveAtTime(curveOut, now, fadeTime);
+          setTimeout(() => {
+            activeNode.disconnect();
+            activeNodes.delete(activeNode);
+          }, fadeTime * 1000);
+        });
+      } else {
+        const script = await synthScripting.attach(updates.selectedScript);
+        // console.log(script._state.getValues());
+  
+        unsubscribeScript = script.onUpdate(async () => {
+          const scriptImport = await script.import();
+          const processFunc = scriptImport.process;
+          const now = audioContext.currentTime;
+  
+          activeNodes.forEach(activeNode => {
+            // activeNode.fadeout(fadeTime);
+            activeNode.gain.setValueCurveAtTime(curveOut, now, fadeTime);
+            setTimeout(() => {
+              activeNode.disconnect();
+              activeNodes.delete(activeNode);
+            }, fadeTime * 1000);
+          });
+          const processNode = new ProcessNode();
+          processNode.connectIn(inputGain);
+          processNode.connectOut(audioContext.destination);
+          processNode.connectOut(analyzerWet);
+          processNode.process(processFunc);
+          processNode.gain.setValueCurveAtTime(curveIn, now, fadeTime);
+          activeNodes.add(processNode);
+        }, true);
+      }
+    }
+  }, true);
+
+  // client.stateManager.observe(async (stateName, stateId) => {
+  //   if (stateName === 'controller') {
+  //     controllerState = await client.stateManager.attach(stateName, stateId);
+
+  //     // controllerState.onUpdate(async updates => {
+  //     // }, true);
+  //   }
+  // });
 
   const getVizData = () => {
-    analyzer.getFloatTimeDomainData(analysisBuffer);
+    analyzerDry.getFloatTimeDomainData(analysisBufferDry);
+    analyzerWet.getFloatTimeDomainData(analysisBufferWet);
     const now = audioContext.currentTime;
-    let min = 1;
-    let max = -1;
+    let minD = 1;
+    let maxD = -1;
+    let minW = 1;
+    let maxW = -1;
+
     for (let j = 0; j < analysisBufferSize; j++) {
-      const val = analysisBuffer[j];
-      min = Math.min(min, val);
-      max = Math.max(max, val);
+      const valD = analysisBufferDry[j];
+      minD = Math.min(minD, valD);
+      maxD = Math.max(maxD, valD);
+
+      const valW = analysisBufferWet[j];
+      minW = Math.min(minW, valW);
+      maxW = Math.max(maxW, valW);
     }
     thingState.set({
-      vizData: {
+      vizDataDry: {
         time: now,
-        min,
-        max
+        min: minD,
+        max: maxD
+      },
+      vizDataWet: {
+        time: now, 
+        min: minW,
+        max: maxW
       }
     });
     const deltaT = analysisBufferSize / audioContext.sampleRate * 1000;

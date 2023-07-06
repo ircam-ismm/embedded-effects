@@ -7,15 +7,15 @@ import createLayout from './layout.js';
 import pluginScripting from '@soundworks/plugin-scripting/client.js';
 import pluginPlatformInit from '@soundworks/plugin-platform-init/client.js'
 
-import '@ircam/simple-components/sc-signal.js';
-import '@ircam/simple-components/sc-toggle.js';
-import '@ircam/simple-components/sc-text.js';
-import '@ircam/simple-components/sc-editor.js';
+import '@ircam/simple-components/sc-slider.js';
 
 import '../components/sw-signal-viz.js'
 import '../components/sw-scripting.js';
+import '../components/sw-thing-controls.js';
+
 
 import { html } from 'lit';
+import thing from '../../server/schemas/thing.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -41,14 +41,27 @@ async function main($container) {
   const controllerState = await client.stateManager.create('controller');
   const synthScripting = await client.pluginManager.get('scripting');
 
-  let connectedThingState;
+  let things = new Set();
+  let monitoredState;
+  let inputGainValue = 1;
+
 
   client.stateManager.observe(async (stateName, stateId) => {
     if (stateName === 'thing') {
-      connectedThingState = await client.stateManager.attach(stateName, stateId);
+      const connectedThingState = await client.stateManager.attach(stateName, stateId);
+      await connectedThingState.set({id: `${stateId}`});
+      things.add(connectedThingState);
 
-      const $visualizer = $layout.querySelector('sw-signal-viz');
-      $visualizer.state = connectedThingState; 
+      connectedThingState.onDetach(() => {
+        things.delete(connectedThingState);
+        $layout.requestUpdate();
+      });
+
+      // const $visualizers = $layout.querySelectorAll('sw-signal-viz');
+      // $visualizers.forEach($visualizer => $visualizer.state = connectedThingState);
+
+      // inputGainValue = connectedThingState.get('inputGain');
+      $layout.requestUpdate();
     }
   });
 
@@ -62,13 +75,58 @@ async function main($container) {
   //   console.log($layout.querySelector('h1'));
   // }, 100);
 
-  $layout.addComponent(html`
-    <sw-signal-viz></sw-signal-viz>
-    <sw-scripting
-      .pluginScripting="${synthScripting}";
-      .controllerState="${controllerState}";
-    ></sw-scripting
-  `);
+  $layout.addComponent({
+    render() {
+      return html`
+      <div style="
+        display: flex;
+      ">
+        <div>
+          <sw-scripting
+            .pluginScripting="${synthScripting}";
+          ></sw-scripting>
+        </div>
+
+        <div style="
+          display: flex;
+          flex-direction: column;
+        ">
+          <div style="
+            display: flex;
+            flex-direction: row;
+            align-items: center
+          ">
+            <h2 style="margin-right: 20px;">set global script</h2>
+            <select style="height: 30px" @change="${e => {
+              const selectedScript = e.target.value === "" ? null : e.target.value;
+              things.forEach(async state => {
+                state.set({ selectedScript });
+              });
+            }}">
+              <option value="">none</option>
+              ${synthScripting.getList().map(scriptName => {
+                return html`<option value=${scriptName}>${scriptName}</option>`
+              })}
+            </select>
+          </div>
+          <div style="
+            display: flex;
+            flex-direction: row;
+          ">
+            ${Array.from(things).map(state => {
+              return html`
+                <sw-thing-controls
+                  .state=${state}
+                  .pluginScripting=${synthScripting}
+                ></sw-thing-controls>
+              `
+            })}
+          </div>
+        </div>
+        
+      </div>
+    `}
+  });
 }
 
 launcher.execute(main, {

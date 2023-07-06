@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css } from 'lit';
 
 import '@ircam/simple-components/sc-signal.js';
 
@@ -8,6 +8,10 @@ class SwSignalViz extends LitElement {
       type: 'any',
       default: null,
     },
+    stateParam: {
+      type: 'string',
+      default: null,
+    }
   };
 
   static styles = css`
@@ -28,6 +32,7 @@ class SwSignalViz extends LitElement {
   }
 
   set state(value) {
+    // console.log(value);
     if (this._unsubscribeState) {
       this._unsubscribeState();
     }
@@ -39,8 +44,8 @@ class SwSignalViz extends LitElement {
     }
 
     this._unsubscribeState = this._state.onUpdate(updates => {
-      if ('vizData' in updates) {
-        const vizData = updates.vizData;
+      if (this.stateParam in updates) {
+        const vizData = updates[this.stateParam];
         const vizBlock = new Float32Array(2);
         vizBlock[0] = vizData.min;
         vizBlock[1] = vizData.max;
@@ -57,7 +62,7 @@ class SwSignalViz extends LitElement {
 
     this._state = null;
     this._unsubscribeState = null;
-    // this.vizObj = null;
+    // this.vizObj = null
   }
 
   firstUpdated() {
@@ -68,7 +73,9 @@ class SwSignalViz extends LitElement {
 
   render() {
     return html`
-      <sc-signal></sc-signal>
+      <sc-signal
+        .colors="${['#800080', '#800080']}"
+      ></sc-signal>
     `;
   };
 }
