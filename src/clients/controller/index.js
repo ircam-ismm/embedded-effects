@@ -112,6 +112,7 @@ async function main($container) {
           <div style="
             display: flex;
             flex-direction: row;
+            align-items: flex-start;
           ">
             ${Array.from(things).map(state => {
               return html`

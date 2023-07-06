@@ -1,7 +1,6 @@
 # `embedded-pedal`
 
 ## TODO
-- choose input source raspberry (or all);
 - start/stop ? trigger ?
 
 

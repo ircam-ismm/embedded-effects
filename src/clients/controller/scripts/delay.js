@@ -2,7 +2,7 @@ export function process(audioContext, input, output) {
   //your script here
   // !! beware of feedback !!
   const delay = audioContext.createDelay(5);
-  delay.delayTime.value = 0.002;
+  delay.delayTime.value = 0.2;
   
   
   

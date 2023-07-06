@@ -16,7 +16,9 @@ class SwThingControls extends LitElement {
       display: flex;
       flex-direction: column;
       margin-right: 20px; 
-      width: 300px;
+      width: 322px;
+      border: 1px #343434 solid;
+      padding: 0 10px 10px;
     }
   `
 
@@ -26,7 +28,7 @@ class SwThingControls extends LitElement {
     this._id = null;
     this._state = null;
     this._inputGainValue = 1;
-    this.monitoring = false;
+    this._monitoring = false;
     this.pluginScripting = null;
 
 
@@ -45,16 +47,23 @@ class SwThingControls extends LitElement {
       if ('selectedScript' in updates) {
         this.requestUpdate();
       }
-    }, true)
-
-    // this.requestUpdate();
+    }, true);
   }
 
-  // activateMonitoring(value) {
-  //   this._monitoring = value;
+  get monitoring() {
+    return this._monitoring;
+  }
 
-  //   this.requestUpdate();
-  // }
+  set monitoring(value) {
+    console.log('set monitoring');
+    this._monitoring = value;
+
+    if (this._state) {
+      this._state.set({monitoringActive: value});
+    }
+
+    this.requestUpdate();
+  }
 
   render() {
     const selectedScript = this._state.get('selectedScript');
@@ -106,7 +115,7 @@ class SwThingControls extends LitElement {
           @change="${e => this.monitoring = e.detail.value}"
         ></sc-toggle>
       </div>
-      ${this.monitoring 
+      ${this._monitoring 
         ? html`<h3>dry signal/input</h3>
           <sw-signal-viz 
             id="viz-dry"

@@ -3,6 +3,10 @@ export default {
     type: 'string',
     default: ''
   },
+  monitoringActive: {
+    type: 'boolean',
+    default: false,
+  },
   vizDataWet: {
     type: 'any',
     default: null,

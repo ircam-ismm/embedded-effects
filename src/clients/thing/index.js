@@ -136,6 +136,9 @@ async function bootstrap() {
       const now = audioContext.currentTime;
       inputGain.gain.linearRampToValueAtTime(updates.inputGain, now + 0.05);
     }
+    if ('monitoringActive' in updates && updates.monitoringActive) {
+      getVizData();
+    }
     if ('selectedScript' in updates) {
       if (unsubscribeScript) {
         unsubscribeScript();
@@ -190,40 +193,40 @@ async function bootstrap() {
   // });
 
   const getVizData = () => {
-    analyzerDry.getFloatTimeDomainData(analysisBufferDry);
-    analyzerWet.getFloatTimeDomainData(analysisBufferWet);
-    const now = audioContext.currentTime;
-    let minD = 1;
-    let maxD = -1;
-    let minW = 1;
-    let maxW = -1;
-
-    for (let j = 0; j < analysisBufferSize; j++) {
-      const valD = analysisBufferDry[j];
-      minD = Math.min(minD, valD);
-      maxD = Math.max(maxD, valD);
-
-      const valW = analysisBufferWet[j];
-      minW = Math.min(minW, valW);
-      maxW = Math.max(maxW, valW);
-    }
-    thingState.set({
-      vizDataDry: {
-        time: now,
-        min: minD,
-        max: maxD
-      },
-      vizDataWet: {
-        time: now, 
-        min: minW,
-        max: maxW
+    if (thingState.get('monitoringActive')) {
+      analyzerDry.getFloatTimeDomainData(analysisBufferDry);
+      analyzerWet.getFloatTimeDomainData(analysisBufferWet);
+      const now = audioContext.currentTime;
+      let minD = 1;
+      let maxD = -1;
+      let minW = 1;
+      let maxW = -1;
+  
+      for (let j = 0; j < analysisBufferSize; j++) {
+        const valD = analysisBufferDry[j];
+        minD = Math.min(minD, valD);
+        maxD = Math.max(maxD, valD);
+  
+        const valW = analysisBufferWet[j];
+        minW = Math.min(minW, valW);
+        maxW = Math.max(maxW, valW);
       }
-    });
-    const deltaT = analysisBufferSize / audioContext.sampleRate * 1000;
-    setTimeout(getVizData, deltaT);
+      thingState.set({
+        vizDataDry: {
+          time: now,
+          min: minD,
+          max: maxD
+        },
+        vizDataWet: {
+          time: now, 
+          min: minW,
+          max: maxW
+        }
+      });
+      const deltaT = analysisBufferSize / audioContext.sampleRate * 1000;
+      setTimeout(getVizData, deltaT);
+    }
   }
-
-  getVizData();
 }
 
 
