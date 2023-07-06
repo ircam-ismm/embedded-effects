@@ -77,10 +77,8 @@ export function process(audioContext, input, output) {
       <!-- scripting -->
       <div style="
         width: 500px;
-        height: 90vh;
         /*background-color: red;*/
         float: left;
-        margin-left: 20px;
       ">
         <h2>synth scripting</h2>
 

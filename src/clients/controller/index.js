@@ -75,11 +75,14 @@ async function main($container) {
   //   console.log($layout.querySelector('h1'));
   // }, 100);
 
+  
+
   $layout.addComponent({
     render() {
       return html`
       <div style="
         display: flex;
+        flex-direction: ${window.innerWidth > 600 ? 'row' : 'column'};
       ">
         <div>
           <sw-scripting
@@ -94,9 +97,11 @@ async function main($container) {
           <div style="
             display: flex;
             flex-direction: row;
-            align-items: center
+            align-items: center;
           ">
-            <h2 style="margin-right: 20px;">set global script</h2>
+            <h2 style="
+              margin: 10px 20px;
+            ">set global script</h2>
             <select style="height: 30px" @change="${e => {
               const selectedScript = e.target.value === "" ? null : e.target.value;
               things.forEach(async state => {
@@ -111,8 +116,9 @@ async function main($container) {
           </div>
           <div style="
             display: flex;
-            flex-direction: row;
+            flex-direction: ${window.innerWidth > 1000 ? 'row' : 'column'};
             align-items: flex-start;
+            
           ">
             ${Array.from(things).map(state => {
               return html`

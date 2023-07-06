@@ -15,7 +15,7 @@ class SwThingControls extends LitElement {
     :host {
       display: flex;
       flex-direction: column;
-      margin-right: 20px; 
+      margin: 10px 20px 0; 
       width: 322px;
       border: 1px #343434 solid;
       padding: 0 10px 10px;
