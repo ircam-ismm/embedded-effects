@@ -55,7 +55,6 @@ class SwThingControls extends LitElement {
   }
 
   set monitoring(value) {
-    console.log('set monitoring');
     this._monitoring = value;
 
     if (this._state) {

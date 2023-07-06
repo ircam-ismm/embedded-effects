@@ -17,3 +17,5 @@ Thumbs.db
 
 # TLS certificates
 /**/*.pem
+
+/src/clients/controller/scripts/*
