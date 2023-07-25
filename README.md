@@ -2,6 +2,7 @@
 
 ## TODO
 - start/stop ? trigger ?
+- output gain
 
 
 ## Problems encountered

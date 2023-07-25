@@ -26,6 +26,10 @@ export default {
     type: 'float',
     default: 1.,
   },
+  outputGain: {
+    type: 'float',
+    default: 1.,
+  },
   selectedScript: {
     type: 'string',
     default: null,

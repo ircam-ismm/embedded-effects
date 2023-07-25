@@ -109,11 +109,13 @@ async function bootstrap() {
 
   // ...and do your own stuff!
   const microphoneStream = await mediaDevices.getUserMedia({ audio: true });
+  
   const streamSource = new MediaStreamAudioSourceNode(audioContext, {
     mediaStream: microphoneStream,
   });
 
   const inputGain = new GainNode(audioContext);
+  const outputGain = new GainNode(audioContext);
 
   const analyzerDry = new AnalyserNode(audioContext);
   const analyzerWet = new AnalyserNode(audioContext);
@@ -123,10 +125,11 @@ async function bootstrap() {
   
   streamSource.connect(inputGain);
   inputGain.connect(analyzerDry);
+  outputGain.connect(audioContext.destination);
 
   const synthScripting = await client.pluginManager.get('scripting');
   const thingState = await client.stateManager.create('thing');
-  let controllerState;
+  // let controllerState;
   let unsubscribeScript;
 
   inputGain.gain.value = thingState.get('inputGain');
@@ -134,7 +137,11 @@ async function bootstrap() {
   thingState.onUpdate(async updates => {
     if ('inputGain' in updates) {
       const now = audioContext.currentTime;
-      inputGain.gain.linearRampToValueAtTime(updates.inputGain, now + 0.05);
+      inputGain.gain.setTargetAtTime(updates.inputGain, now, 0.02);
+    }
+    if ('outputGain' in updates) {
+      const now = audioContext.currentTime;
+      outputGain.gain.setTargetAtTime(updates.outputGain, now, 0.02);
     }
     if ('monitoringActive' in updates && updates.monitoringActive) {
       getVizData();
@@ -173,7 +180,7 @@ async function bootstrap() {
           });
           const processNode = new ProcessNode();
           processNode.connectIn(inputGain);
-          processNode.connectOut(audioContext.destination);
+          processNode.connectOut(outputGain);
           processNode.connectOut(analyzerWet);
           processNode.process(processFunc);
           processNode.gain.setValueCurveAtTime(curveIn, now, fadeTime);

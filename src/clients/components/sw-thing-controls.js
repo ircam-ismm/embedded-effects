@@ -28,6 +28,7 @@ class SwThingControls extends LitElement {
     this._id = null;
     this._state = null;
     this._inputGainValue = 1;
+    this._outputGainValue = 1;
     this._monitoring = false;
     this.pluginScripting = null;
 
@@ -42,6 +43,7 @@ class SwThingControls extends LitElement {
     this._state = value;
     this._id = value.get('id');
     this._inputGainValue = value.get('inputGain');
+    this._outputGainValue = value.get('outputGain');
 
     this._state.onUpdate(updates => {
       if ('selectedScript' in updates) {
@@ -100,6 +102,17 @@ class SwThingControls extends LitElement {
         value="${this._inputGainValue}"
         @input="${e => {
           if (this._state) this._state.set({inputGain: e.detail.value});
+        }}"
+      ></sc-slider>
+      <h3>output gain</h3>
+      <sc-slider
+        width="300"
+        display-number
+        min="0"
+        max="10"
+        value="${this._outputGainValue}"
+        @input="${e => {
+          if (this._state) this._state.set({outputGain: e.detail.value});
         }}"
       ></sc-slider>
       <div style="
