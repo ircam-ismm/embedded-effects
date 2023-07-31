@@ -1,8 +1,9 @@
 import { LitElement, html, css } from 'lit';
 
 import './sw-signal-viz.js';
-import '@ircam/simple-components/sc-slider.js';
-import '@ircam/simple-components/sc-toggle.js'
+import '@ircam/sc-components/sc-slider.js';
+import '@ircam/sc-components/sc-toggle.js';
+import '@ircam/sc-components/sc-select.js';
 
 class SwThingControls extends LitElement {
   static properties = {
@@ -14,11 +15,56 @@ class SwThingControls extends LitElement {
   static styles = css`
     :host {
       display: flex;
-      flex-direction: column;
-      margin: 10px 20px 0; 
-      width: 322px;
+      flex-direction: row;
+      width: 100%;
+      height: 200px;
       border: 1px #343434 solid;
-      padding: 0 10px 10px;
+      padding: 10px;
+    }
+
+    :host > div {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+
+    h1 {
+      margin-top: 0;
+    }
+
+    sc-slider {
+      width: 30px;
+      height: 80%;
+    }
+
+    sc-select {
+      width: 100%;
+    }
+
+    sw-signal-viz {
+      height: 80%;
+    }
+
+    .slider {
+      flex-basis: 10%;
+    }
+
+    .signal-viz {
+      flex-basis: 27%;
+      padding: 0 5px;
+    }
+
+    #left-panel {
+      flex-basis: 20%;
+      margin: 0 20px 0 10px;
+    }
+
+    #monitoring-select {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      justify-content: space-between;
+      margin: 5px 0;
     }
   `
 
@@ -142,6 +188,81 @@ class SwThingControls extends LitElement {
           ></sw-signal-viz>` 
         : ''}
       
+    `
+  }
+
+  render() {
+    const selectedScript = this._state.get('selectedScript');
+
+    const options = this.pluginScripting.getList();
+    options.unshift('select script');
+
+    return html`
+      <div id="left-panel">
+        <h1>thing id ${this._id}</h1>
+        <div id="monitoring-select">
+          <h3>monitoring</h3>
+          <sc-toggle
+            @change="${e => this.monitoring = e.detail.value}"
+          ></sc-toggle>
+        </div>
+        <div>
+          <sc-select
+            options="${JSON.stringify(options)}"
+            @change=${e => {
+              const selectedScript = e.target.value === "select script" ? null : e.target.value;
+              this._state.set({ selectedScript });
+            }}
+          ></sc-select>
+        </div>
+      </div>
+      <div class="slider">
+        <sc-slider
+          number-box
+          min=0
+          max=10
+          orientation="vertical"
+          value=${this._inputGainValue}
+          @input=${e => {
+            if (this._state) this._state.set({ inputGain: e.detail.value });
+          }}
+        ></sc-slider>
+        <h3>input gain</h3>
+      </div>
+      <div class="slider">
+        <sc-slider
+          number-box
+          min=0
+          max=10
+          orientation="vertical"
+          value=${this._outputGainValue}
+          @input=${e => {
+            if (this._state) this._state.set({ outputGain: e.detail.value });
+          }}
+        ></sc-slider>
+        <h3>output gain</h3>
+      </div>
+      ${this._monitoring
+        ? html`
+            <div class="signal-viz">
+              <sw-signal-viz
+                id="viz-dry"
+                stateParam="vizDataDry"
+                .state=${this._state}
+              ></sw-signal-viz>
+              <h3>dry signal/input</h3>
+            </div>
+            <div class="signal-viz">
+              <sw-signal-viz
+                id="viz-wet"
+                stateParam="vizDataWet"
+                .state=${this._state}
+              ></sw-signal-viz>
+              <h3>wet signal/output</h3>
+            <div>
+          `
+        : ''
+      }
     `
   }
 }

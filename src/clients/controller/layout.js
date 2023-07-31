@@ -46,9 +46,7 @@ class ControllerLayout extends LitElement {
         <h1>${this.client.config.app.name} | ${this.client.role}</h1>
         <sw-audit .client="${this.client}"></sw-audit>
       </header>
-      <div>
-        ${Array.from(this._components).map(comp => comp.render ? comp.render() : comp)}
-      </div>
+      ${Array.from(this._components).map(comp => comp.render ? comp.render() : comp)}
     `;
   }
 }

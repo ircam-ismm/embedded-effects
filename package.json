@@ -20,9 +20,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@ircam/sc-components": "^3.0.0-alpha.19",
     "@ircam/simple-components": "^2.5.0",
     "@soundworks/core": "^4.0.0-alpha.0",
     "@soundworks/helpers": "^1.0.0-alpha.2",
+    "@soundworks/plugin-filesystem": "^2.0.0-alpha.5",
     "@soundworks/plugin-platform-init": "^1.0.0-alpha.5",
     "@soundworks/plugin-scripting": "^2.0.0-alpha.1",
     "@soundworks/plugin-sync": "^2.0.0-alpha.1",

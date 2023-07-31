@@ -6,6 +6,7 @@ import '../utils/catch-unhandled-errors.js';
 
 import pluginScripting from '@soundworks/plugin-scripting/server.js';
 import pluginPlatformInit from '@soundworks/plugin-platform-init/server.js'
+import pluginFilesystem from '@soundworks/plugin-filesystem/server.js';
 
 import thingSchema from './schemas/thing.js';
 import controllerSchema from './schemas/controller.js'
@@ -38,8 +39,13 @@ server.useDefaultApplicationTemplate();
 // server.stateManager.registerSchema('my-schema', definition);
 server.pluginManager.register('platform-init', pluginPlatformInit);
 server.pluginManager.register('scripting', pluginScripting, {
-  dirname: 'src/clients/controller/scripts',
+  dirname: 'scripts',
 });
+server.pluginManager.register('filesystem', pluginFilesystem, {
+  dirname: 'scripts',
+  publicPath: '/',
+});
+
 
 server.stateManager.registerSchema('controller', controllerSchema);
 server.stateManager.registerSchema('thing', thingSchema);

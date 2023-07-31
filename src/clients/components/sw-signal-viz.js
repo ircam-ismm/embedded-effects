@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 
-import '@ircam/simple-components/sc-signal.js';
+import '@ircam/sc-components/sc-signal.js';
 
 class SwSignalViz extends LitElement {
   static properties = {
@@ -17,8 +17,8 @@ class SwSignalViz extends LitElement {
   static styles = css`
     :host {
       display: inline-block;
-      width: 300px;
-      height: 150px;
+      width: 100%;
+      height: 100%;
     }
 
     sc-signal {
@@ -74,6 +74,9 @@ class SwSignalViz extends LitElement {
   render() {
     return html`
       <sc-signal
+        duration=1
+        min=-1
+        max=1
         .colors="${['#800080', '#800080']}"
       ></sc-signal>
     `;
