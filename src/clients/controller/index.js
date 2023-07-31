@@ -5,8 +5,8 @@ import launcher from '@soundworks/helpers/launcher.js';
 import createLayout from './layout.js';
 
 import pluginScripting from '@soundworks/plugin-scripting/client.js';
-import pluginPlatformInit from '@soundworks/plugin-platform-init/client.js'
 import pluginFilesystem from '@soundworks/plugin-filesystem/client.js';
+// import pluginPlatformInit from '@soundworks/plugin-platform-init/client.js'
 
 import '@ircam/sc-components/sc-filetree.js';
 import '@ircam/sc-components/sc-editor.js';
@@ -32,7 +32,7 @@ async function main($container) {
 
   client.pluginManager.register('scripting', pluginScripting);
   client.pluginManager.register('filesystem', pluginFilesystem, {});
-  client.pluginManager.register('platform-init', pluginPlatformInit, { audioContext });
+  // client.pluginManager.register('platform-init', pluginPlatformInit, { audioContext });
 
   launcher.register(client, {
     initScreensContainer: $container,
@@ -70,16 +70,6 @@ async function main($container) {
   });
 
   const $layout = createLayout(client, $container);
-  
-
-  // ...
-  // $layout.addComponent(html`<h1>ok</h1>`);
-
-  // setTimeout(() => {
-  //   console.log($layout.querySelector('h1'));
-  // }, 100);
-
-  
 
   $layout.addComponent({
     render() {
@@ -89,21 +79,15 @@ async function main($container) {
           style="
             display: flex;
             flex-direction: row;
-            height: 100vh;
+            height: calc(100vh - 38px);
           "
         >
           <sw-scripting
-            style="
-              flex-basis: 40%;
-            "
+            style="width: 50%;"
             .pluginScripting="${scripting}";
             .pluginFilesystem="${filesystem}"
           ></sw-scripting>
-          <div style="
-              flex-basis: 60%;
-              overflow: scroll;
-            "
-          >
+          <div style="width: 50%; overflow: scroll;">
             ${Array.from(things).map(state => {
               return html`
                 <sw-thing-controls

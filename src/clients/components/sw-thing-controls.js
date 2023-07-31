@@ -4,6 +4,7 @@ import './sw-signal-viz.js';
 import '@ircam/sc-components/sc-slider.js';
 import '@ircam/sc-components/sc-toggle.js';
 import '@ircam/sc-components/sc-select.js';
+import '@ircam/sc-components/sc-text.js';
 
 class SwThingControls extends LitElement {
   static properties = {
@@ -15,56 +16,73 @@ class SwThingControls extends LitElement {
   static styles = css`
     :host {
       display: flex;
-      flex-direction: row;
       width: 100%;
       height: 200px;
-      border: 1px #343434 solid;
-      padding: 10px;
+      border-bottom: 1px #343434 solid;
+      flex-direction: row;
+      align-content: stretch;
     }
 
-    :host > div {
+    .infos {
+      box-sizing: border-box;
+      height: 100%;
+      padding: 5px;
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
+      justify-content: space-between;
     }
 
-    h1 {
-      margin-top: 0;
-    }
-
-    sc-slider {
-      width: 30px;
-      height: 80%;
-    }
-
-    sc-select {
-      width: 100%;
-    }
-
-    sw-signal-viz {
-      height: 80%;
+    .infos h1 {
+      margin: 0;
     }
 
     .slider {
-      flex-basis: 10%;
-    }
-
-    .signal-viz {
-      flex-basis: 27%;
-      padding: 0 5px;
-    }
-
-    #left-panel {
-      flex-basis: 20%;
-      margin: 0 20px 0 10px;
-    }
-
-    #monitoring-select {
+      height: 100%;
+      width: 100px;
       display: flex;
-      align-items: center;
-      flex-direction: row;
+      flex-direction: column;
       justify-content: space-between;
-      margin: 5px 0;
+    }
+
+    .slider sc-slider {
+      height: 100%;
+      width: 100%;
+    }
+
+    .slider sc-text {
+      width: 100px;
+      min-width: 100px;
+      border: 1px solid #232323;
+      border-radius: 0;
+    }
+
+    .monitoring {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .monitoring sc-text {
+      background-color: #000000;
+      border: none;
+    }
+
+    .monitoring .viz {
+      display: flex;
+      flex-direction: row;
+      height: calc(100% - 30px);
+    }
+
+    .monitoring .viz sw-signal-viz {
+      height: calc(100% - 30px);
+    }
+    .monitoring .viz p {
+      width: 100%;
+      height: 30px;
+      line-height: 30px;
+      margin: 0;
+      text-indent: 6px;
     }
   `
 
@@ -77,8 +95,6 @@ class SwThingControls extends LitElement {
     this._outputGainValue = 1;
     this._monitoring = false;
     this.pluginScripting = null;
-
-
   }
 
   get state() {
@@ -106,7 +122,7 @@ class SwThingControls extends LitElement {
     this._monitoring = value;
 
     if (this._state) {
-      this._state.set({monitoringActive: value});
+      this._state.set({ monitoringActive: value });
     }
 
     this.requestUpdate();
@@ -120,27 +136,18 @@ class SwThingControls extends LitElement {
     options.unshift('select script');
 
     return html`
-      <div id="left-panel">
+      <div class="infos">
         <h1>thing id ${this._id}</h1>
-        <div id="monitoring-select">
-          <h3>monitoring</h3>
-          <sc-toggle
-            @change="${e => this.monitoring = e.detail.value}"
-          ></sc-toggle>
-        </div>
-        <div>
-          <sc-select
-            options="${JSON.stringify(options)}"
-            @change=${e => {
-              const selectedScript = e.target.value === "select script" ? null : e.target.value;
-              this._state.set({ selectedScript });
-            }}
-          ></sc-select>
-        </div>
+        <sc-select
+          options="${JSON.stringify(options)}"
+          @change=${e => {
+            const selectedScript = e.target.value === "select script" ? null : e.target.value;
+            this._state.set({ selectedScript });
+          }}
+        ></sc-select>
       </div>
       <div class="slider">
         <sc-slider
-          number-box
           min=0
           max=10
           orientation="vertical"
@@ -149,11 +156,10 @@ class SwThingControls extends LitElement {
             if (this._state) this._state.set({ inputGain: e.detail.value });
           }}
         ></sc-slider>
-        <h3>input gain</h3>
+        <sc-text>input gain</sc-text>
       </div>
       <div class="slider">
         <sc-slider
-          number-box
           min=0
           max=10
           orientation="vertical"
@@ -162,29 +168,39 @@ class SwThingControls extends LitElement {
             if (this._state) this._state.set({ outputGain: e.detail.value });
           }}
         ></sc-slider>
-        <h3>output gain</h3>
+        <sc-text>output gain</sc-text>
       </div>
-      ${this._monitoring
-        ? html`
-            <div class="signal-viz">
-              <sw-signal-viz
-                id="viz-dry"
-                stateParam="vizDataDry"
-                .state=${this._state}
-              ></sw-signal-viz>
-              <h3>dry signal/input</h3>
-            </div>
-            <div class="signal-viz">
-              <sw-signal-viz
-                id="viz-wet"
-                stateParam="vizDataWet"
-                .state=${this._state}
-              ></sw-signal-viz>
-              <h3>wet signal/output</h3>
-            <div>
-          `
-        : ''
-      }
+      <div class="monitoring">
+        <div class="select">
+          <sc-text>monitoring</sc-text>
+          <sc-toggle
+            @change="${e => this.monitoring = e.detail.value}"
+          ></sc-toggle>
+        </div>
+        <div class="viz">
+          ${this._monitoring
+            ? html`
+                <div>
+                  <sw-signal-viz
+                    id="viz-dry"
+                    stateParam="vizDataDry"
+                    .state=${this._state}
+                  ></sw-signal-viz>
+                  <p>dry signal/input</p>
+                </div>
+                <div>
+                  <sw-signal-viz
+                    id="viz-wet"
+                    stateParam="vizDataWet"
+                    .state=${this._state}
+                  ></sw-signal-viz>
+                  <p>wet signal/output</p>
+                <div>
+              `
+            : ''
+          }
+        </div>
+      </div>
     `
   }
 }
