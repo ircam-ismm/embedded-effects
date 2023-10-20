@@ -23,7 +23,7 @@ class SwScripting extends LitElement {
 
     sc-editor {
       width: calc(100% - 200px);
-      height: 100%
+      height: 100%;
     }
   `;
 
