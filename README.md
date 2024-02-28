@@ -1,12 +1,15 @@
-# `embedded-pedal`
+# `embedded-effect`
 
-## TODO
-- start/stop ? trigger ?
-- output gain
+Simple prototype of a Web Audio programmable guitar pedal
+
+## Install
+
+```
+npm install
+```
+
+## Launch the application
 
 
-## Problems encountered
 
-- register node-web-audio-api classes globally 
-- plugin scripting target
-- same node-web-audio connection stacking
+

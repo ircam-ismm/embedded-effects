@@ -8,8 +8,10 @@ for (let i = 0; i < curve.length; i++) {
 }
 
 export function process(audioContext, input, output) {
+  const gain = 50;
+  
   const postGain = audioContext.createGain();
-  postGain.gain.value = 0.01;
+  postGain.gain.value = 1 / gain;
   postGain.connect(output);
 
   const waveshaper = audioContext.createWaveShaper();
@@ -17,7 +19,7 @@ export function process(audioContext, input, output) {
   waveshaper.curve = curve;
 
   const preGain = audioContext.createGain();
-  preGain.gain.value = 100;
+  preGain.gain.value = gain;
   preGain.connect(waveshaper);
 
   input.connect(preGain);

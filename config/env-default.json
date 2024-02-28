@@ -2,7 +2,7 @@
   type: 'development',
   port: 80,
   subpath: '',
-  serverAddress: '10.10.0.1',
+  serverAddress: '127.0.0.1',
   useHttps: false,
   httpsInfos: {
     cert: null,

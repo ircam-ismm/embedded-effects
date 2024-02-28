@@ -9,13 +9,6 @@ import pluginScripting from '@soundworks/plugin-scripting/client.js';
 
 import { AudioContext, GainNode, OscillatorNode, mediaDevices, MediaStreamAudioSourceNode, AnalyserNode } from 'node-web-audio-api';
 
-globalThis.AudioContext = AudioContext;
-globalThis.GainNode = GainNode;
-globalThis.mediaDevices = mediaDevices;
-globalThis.MediaStreamAudioSourceNode = MediaStreamAudioSourceNode;
-globalThis.AnalyserNode = AnalyserNode;
-
-
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
 // - Issue Tracker:         https://github.com/collective-soundworks/soundworks/issues
@@ -178,6 +171,7 @@ async function bootstrap() {
               activeNodes.delete(activeNode);
             }, fadeTime * 1000);
           });
+
           const processNode = new ProcessNode();
           processNode.connectIn(inputGain);
           processNode.connectOut(outputGain);
@@ -243,4 +237,5 @@ async function bootstrap() {
 launcher.execute(bootstrap, {
   numClients: process.env.EMULATE ? parseInt(process.env.EMULATE) : 1,
   moduleURL: import.meta.url,
+  restartOnError: true,
 });
