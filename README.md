@@ -10,6 +10,12 @@ npm install
 
 ## Launch the application
 
+```
+npm run dev
+```
+
+The
+
 
 
 

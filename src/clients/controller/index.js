@@ -71,6 +71,15 @@ async function main($container) {
 
   const $layout = createLayout(client, $container);
 
+  // // test
+  // setInterval(() => {
+  //   const options = scripting.getList();
+  //   const index = Math.floor(Math.random() * options.length);
+  //   const selectedScript = options[index];
+  //   console.log('switch to:', selectedScript);
+  //   things.forEach(thing => thing.set({ selectedScript }));
+  // }, 1000);
+
   $layout.addComponent({
     render() {
       const filetree = scripting.getTree();
