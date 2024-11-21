@@ -1,4 +1,4 @@
-export function process(audioContext, input, output) {
+export function buildGraph(audioContext, input, output) {
 
   const frequency = 0.5;
   const depth = 0.9; // this value will control both tremolo and depth nodes

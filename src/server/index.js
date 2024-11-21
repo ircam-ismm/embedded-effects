@@ -1,15 +1,12 @@
 import '@soundworks/helpers/polyfills.js';
 import { Server } from '@soundworks/core/server.js';
+import { loadConfig } from '@soundworks/helpers/node.js';
 
-import { loadConfig } from '../utils/load-config.js';
 import '../utils/catch-unhandled-errors.js';
 
 import pluginScripting from '@soundworks/plugin-scripting/server.js';
-import pluginPlatformInit from '@soundworks/plugin-platform-init/server.js'
-import pluginFilesystem from '@soundworks/plugin-filesystem/server.js';
 
-import thingSchema from './schemas/thing.js';
-import controllerSchema from './schemas/controller.js'
+import thingDefinition from './definitions/thing.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -25,35 +22,13 @@ console.log(`
 --------------------------------------------------------
 `);
 
-/**
- * Create the soundworks server
- */
 const server = new Server(config);
-// configure the server for usage within this application template
 server.useDefaultApplicationTemplate();
 
-/**
- * Register plugins and schemas
- */
-// server.pluginManager.register('my-plugin', plugin);
-// server.stateManager.registerSchema('my-schema', definition);
-server.pluginManager.register('platform-init', pluginPlatformInit);
+server.stateManager.registerSchema('thing', thingDefinition);
+
 server.pluginManager.register('scripting', pluginScripting, {
   dirname: 'scripts',
 });
-server.pluginManager.register('filesystem', pluginFilesystem, {
-  dirname: 'scripts',
-  publicPath: '/',
-});
 
-
-server.stateManager.registerSchema('controller', controllerSchema);
-server.stateManager.registerSchema('thing', thingSchema);
-
-/**
- * Launch application (init plugins, http server, etc.)
- */
 await server.start();
-
-// and do your own stuff!
-
