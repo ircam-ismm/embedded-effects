@@ -127,7 +127,7 @@ async function bootstrap() {
           }
 
           const script = await scripting.attach(value);
-          console.log('> running script', script);
+          console.log('> running script', script.name);
 
           script.onUpdate(async () => {
             clearsubGraphHost();

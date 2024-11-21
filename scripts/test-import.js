@@ -1,4 +1,7 @@
+// installed module
 import { Scheduler } from '@ircam/sc-scheduling';
+// local module
+import addOne from './utils/add-one.js';
 
 let scheduler = null;
 
@@ -12,7 +15,7 @@ export function buildGraph(audioContext, input, output) {
     osc.start(now);
     osc.stop(now + 0.5);
     
-    return now + 1;
+    return addOne(now);
   });
 }
 
