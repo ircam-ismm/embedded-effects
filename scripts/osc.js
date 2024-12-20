@@ -1,7 +1,8 @@
 export function process(audioContext, input, output) {
 
   const osc = audioContext.createOscillator();
-  osc.frequency.value = 250;
+  osc.type = "sine"
+  osc.frequency.value = 400;
   
   osc.connect(output);
   osc.start();

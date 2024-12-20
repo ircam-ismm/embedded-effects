@@ -1,6 +1,6 @@
 export function process(audioContext, input, output) {
-  const delayTime = 1;
-  const feedback = 0.8;
+  const delayTime = 0.2;
+  const feedback = 0.5;
   //your script here
   // !! beware of feedback !!
   const delay = audioContext.createDelay(5);
@@ -15,4 +15,9 @@ export function process(audioContext, input, output) {
   input.connect(output);
   input.connect(delay);
   delay.connect(output);
+  
+  const gain2 = audioContext.createGain();
+  gain2.gain.value = 5
+
+  output.connect(gain2)
 }

@@ -1,6 +1,6 @@
 export function process(audioContext, input, output) {
 
-  const frequency = 0.5;
+  const frequency = 5;
   const depth = 0.9; // this value will control both tremolo and depth nodes
 
   const tremolo = audioContext.createGain(); // the gain that will be modulated [0, 1]
