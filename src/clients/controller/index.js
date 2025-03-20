@@ -3,14 +3,10 @@ import { Client } from '@soundworks/core/client.js';
 import { loadConfig, launcher } from '@soundworks/helpers/browser.js';
 import { html, render } from 'lit';
 import { repeat } from 'lit/directives/repeat.js'
-
-import '../components/sw-audit.js';
-import '../components/sw-thing-controls.js';
-
 import pluginScripting from '@soundworks/plugin-scripting/client.js';
 
-import '@soundworks/plugin-scripting/components/sw-plugin-scripting.js';
 import '@ircam/sc-components/sc-separator.js';
+import '../components/sw-thing-controls.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
@@ -49,10 +45,10 @@ async function main($container) {
           <sw-audit .client="${client}"></sw-audit>
         </header>
         <section>
-          <sw-plugin-scripting
+          <sw-editor
             style="width: 50%;"
             .plugin=${scripting}
-          ></sw-plugin-scripting>
+          ></sw-editor>
           <sc-separator></sc-separator>
           <div style="width: 50%">
             ${repeat(things, state => state.get('id'), state => {

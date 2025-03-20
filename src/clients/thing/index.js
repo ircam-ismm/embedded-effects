@@ -127,25 +127,27 @@ async function bootstrap() {
           }
 
           const script = await scripting.attach(value);
-          console.log('> running script', script.name);
 
-          script.onUpdate(async () => {
-            clearsubGraphHost();
+          script.onUpdate(async updates => {
+            if (updates.nodeBuild) {
+              clearsubGraphHost();
 
-            const { buildGraph, cleanup } = await script.import();
+              const { buildGraph, cleanup } = await script.import();
 
-            if (!buildGraph) {
-              console.error('The script does not export a `buildGraph` function, abort');
-              return;
+              if (!buildGraph) {
+                const msg = `Invalid script: The script "${script.name}" does not export a "buildGraph" function`;
+                script.reportRuntimeError(new Error(msg));
+                return;
+              }
+
+              subGraphHost = new SubGraphHost(audioContext);
+              subGraphHost.exec(buildGraph, cleanup);
+              // connect to the rest of the graph
+              inputGain.connect(subGraphHost.input);
+              subGraphHost.connect(outputGain);
+              subGraphHost.connect(analyserWet);
+              subGraphHost.fadeIn(1);
             }
-
-            subGraphHost = new SubGraphHost(audioContext);
-            subGraphHost.exec(buildGraph, cleanup);
-            // connect to the rest of the graph
-            inputGain.connect(subGraphHost.input);
-            subGraphHost.connect(outputGain);
-            subGraphHost.connect(analyserWet);
-            subGraphHost.fadeIn(1);
           }, true);
         }
         case 'monitoring': {
