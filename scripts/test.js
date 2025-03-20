@@ -1,14 +1,19 @@
 export async function process(audioContext, input, output) {
     const hostGroupId = await setupWamHost(audioContext);
 
-    const wamURIReverb = "wam-community/dist/plugins/wimmics/sweetWah/index.js";
-    const reverbInstance = await loadDynamicComponent(wamURIReverb, hostGroupId);
+    //const wamURIReverb = "wam-community/dist/plugins/wimmics/sweetWah/index.js";
+    //const reverbInstance = await loadDynamicComponent(wamURIReverb, hostGroupId);
+
+    const wamURIStonePhaser = "wam-community/dist/plugins/wimmics/stonephaser/index.js";
+    const stonePhaserInstance = await loadDynamicComponent(wamURIStonePhaser, hostGroupId);
+
+    //const { default: initializeStonePhaser } = await import("@wam-community/dist/plugins/wimmics/stonephaser/index.js");
+    //const stonePhaserInstance = await initializeStonePhaser(audioContext, hostGroupId);
 
     // Build the audio graph
-    input.connect(reverbInstance.audioNode);
+    input.connect(stonePhaserInstance.audioNode);
 
-    reverbInstance.audioNode.connect(output);
-
+    stonePhaserInstance.audioNode.connect(output);
 }
 
 async function setupWamHost(audioContext) {
