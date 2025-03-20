@@ -43,6 +43,7 @@ async function main($container) {
 
   const scripting = await client.pluginManager.get('scripting');
   const filesystem = await client.pluginManager.get('filesystem');
+  console.log(scripting);
   let selectedScript = null;
 
   let things = new Set();
@@ -82,7 +83,7 @@ async function main($container) {
 
   $layout.addComponent({
     render() {
-      const filetree = scripting.getTree();
+      const filetree = filesystem.getTree();
       return html`
         <div
           style="

@@ -22,7 +22,7 @@ async function setupWamHost(audioContext) {
     const { default: initializeWamHost } = await import("@webaudiomodules/sdk/src/initializeWamHost.js");
 
 	const [hostGroupId] = await initializeWamHost(audioContext);
-    
+
     // hostGroupId is useful to group several WAM plugins together....
     return hostGroupId;
 }
@@ -30,13 +30,12 @@ async function setupWamHost(audioContext) {
 async function loadDynamicComponent(wamURI, hostGroupId) {
     try {
     // Import WAM
-      const { default: WAM } = await import(wamURI);
+      const { default: WAM } = await import("wam-community/dist/plugins/wimmics/stonephaser/index.js");
       // Create a new instance of the plugin, pass groupId
       const wamInstance = await WAM.createInstance(hostGroupId, audioContext);
-      
+
       return wamInstance;
     } catch (error) {
       console.error('Erreur lors du chargement du Web Component :', error);
     }
 }
-  
