@@ -1,4 +1,4 @@
-export function process(audioContext, input, output) {
+export function buildGraph(audioContext, input, output) {
     const lowpassFrequency = 147;
     const midlowpassFrequency = 587;
     const midhighpassFrequency = 2490;
@@ -19,11 +19,11 @@ export function process(audioContext, input, output) {
     lowpass.frequency.value = lowpassFrequency;
 
     const midlowpass = audioContext.createBiquadFilter();
-    midlowpass.type = 'midlowpass';
+    midlowpass.type = 'lowpass';
     midlowpass.frequency.value = midlowpassFrequency;
 
     const midhighpass = audioContext.createBiquadFilter();
-    midhighpass.type = 'midhighpass';
+    midhighpass.type = 'highpass';
     midhighpass.frequency.value = midhighpassFrequency;
 
     const highpass = audioContext.createBiquadFilter();
@@ -39,7 +39,7 @@ export function process(audioContext, input, output) {
             curve[i] = ((3 + amount) * x * 20 * Math.PI) / (Math.PI + amount * Math.abs(x));
         }
         waveShaper.curve = curve;
-        waveShaper.oversample = '4x';
+        // waveShaper.oversample = '4x';
         return waveShaper;
     };
 

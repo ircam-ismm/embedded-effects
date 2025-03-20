@@ -1,23 +1,23 @@
-export function process(audioContext, input, output) {
-  const delayTime = 0.2;
-  const feedback = 0.5;
-  //your script here
-  // !! beware of feedback !!
-  const delay = audioContext.createDelay(5);
-  delay.delayTime.value = delayTime;
-  
-  const gain = audioContext.createGain();
-  gain.gain.value = feedback;
-  
-  delay.connect(gain);
-  gain.connect(input);
-  
-  input.connect(output);
-  input.connect(delay);
-  delay.connect(output);
-  
-  const gain2 = audioContext.createGain();
-  gain2.gain.value = 5
+export function buildGraph(audioContext, input, output) {
+  const delayTime = 0.5;
+  const feedback = 0.9;
+  const preGain = 0.8;
 
-  output.connect(gain2)
+  // direct sound
+  input.connect(output);
+
+  // feedback delay
+  const preGainNode = audioContext.createGain();
+  preGainNode.gain.value = preGain;
+  input.connect(preGainNode);
+
+  const delayNode = audioContext.createDelay(5);
+  delayNode.delayTime.value = delayTime;
+  preGainNode.connect(delayNode);
+
+  const feedbackNode = audioContext.createGain();
+  feedbackNode.gain.value = feedback;
+  delayNode.connect(feedbackNode);
+  feedbackNode.connect(output);
+  feedbackNode.connect(delayNode);
 }

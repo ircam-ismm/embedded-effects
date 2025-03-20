@@ -4,7 +4,7 @@ import '@ircam/sc-components/sc-signal.js';
 
 class SwSignalViz extends LitElement {
   static properties = {
-    state: { 
+    state: {
       type: 'any',
       default: null,
     },
@@ -32,7 +32,6 @@ class SwSignalViz extends LitElement {
   }
 
   set state(value) {
-    // console.log(value);
     if (this._unsubscribeState) {
       this._unsubscribeState();
     }
@@ -62,7 +61,6 @@ class SwSignalViz extends LitElement {
 
     this._state = null;
     this._unsubscribeState = null;
-    // this.vizObj = null
   }
 
   firstUpdated() {
@@ -74,9 +72,9 @@ class SwSignalViz extends LitElement {
   render() {
     return html`
       <sc-signal
-        duration=1
-        min=-1
-        max=1
+        duration="1"
+        min="-1"
+        max="1"
         .colors="${['#800080', '#800080']}"
       ></sc-signal>
     `;

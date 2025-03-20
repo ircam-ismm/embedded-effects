@@ -1,4 +1,4 @@
-export async function process(audioContext, input, output) {
+export async function buildGraph(audioContext, input, output) {
     const hostGroupId = await setupWamHost(audioContext);
 
     //const wamURIReverb = "wam-community/dist/plugins/wimmics/sweetWah/index.js";

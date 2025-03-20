@@ -1,116 +1,72 @@
 import '@soundworks/helpers/polyfills.js';
 import { Client } from '@soundworks/core/client.js';
-import launcher from '@soundworks/helpers/launcher.js';
-
-import createLayout from './layout.js';
-
+import { loadConfig, launcher } from '@soundworks/helpers/browser.js';
+import { html, render } from 'lit';
+import { repeat } from 'lit/directives/repeat.js'
 import pluginScripting from '@soundworks/plugin-scripting/client.js';
-import pluginFilesystem from '@soundworks/plugin-filesystem/client.js';
-// import pluginPlatformInit from '@soundworks/plugin-platform-init/client.js'
 
-import '@ircam/sc-components/sc-filetree.js';
-import '@ircam/sc-components/sc-editor.js';
-
-import '../components/sw-signal-viz.js'
-import '../components/sw-scripting.js';
+import '@ircam/sc-components/sc-separator.js';
 import '../components/sw-thing-controls.js';
-
-
-import { html } from 'lit';
-import thing from '../../server/schemas/thing.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
 // - Issue Tracker:         https://github.com/collective-soundworks/soundworks/issues
 // - Wizard & Tools:        `npx soundworks`
 
-const config = window.SOUNDWORKS_CONFIG;
-const audioContext = new AudioContext();
-
 async function main($container) {
+  /**
+   * Load configuration from config files and create the soundworks client
+   */
+  const config = loadConfig();
   const client = new Client(config);
-
-  client.pluginManager.register('scripting', pluginScripting);
-  client.pluginManager.register('filesystem', pluginFilesystem, {});
-  // client.pluginManager.register('platform-init', pluginPlatformInit, { audioContext });
 
   launcher.register(client, {
     initScreensContainer: $container,
     reloadOnVisibilityChange: false,
   });
 
+  client.pluginManager.register('scripting', pluginScripting);
+
   await client.start();
 
   const scripting = await client.pluginManager.get('scripting');
-  const filesystem = await client.pluginManager.get('filesystem');
-  console.log(scripting);
-  let selectedScript = null;
-
-  let things = new Set();
-  let monitoredState;
-  let inputGainValue = 1;
+  const scriptCollection = await scripting.getCollection();
 
 
-  client.stateManager.observe(async (stateName, stateId) => {
-    if (stateName === 'thing') {
-      const connectedThingState = await client.stateManager.attach(stateName, stateId);
-      await connectedThingState.set({id: `${stateId}`});
-      things.add(connectedThingState);
+  const things = await client.stateManager.getCollection('thing');
+  things.onAttach(() => renderApp());
+  things.onUpdate(() => renderApp());
+  things.onDetach(() => renderApp());
 
-      connectedThingState.onDetach(() => {
-        things.delete(connectedThingState);
-        $layout.requestUpdate();
-      });
-
-      // const $visualizers = $layout.querySelectorAll('sw-signal-viz');
-      // $visualizers.forEach($visualizer => $visualizer.state = connectedThingState);
-
-      // inputGainValue = connectedThingState.get('inputGain');
-      $layout.requestUpdate();
-    }
-  });
-
-  const $layout = createLayout(client, $container);
-
-  // // test
-  // setInterval(() => {
-  //   const options = scripting.getList();
-  //   const index = Math.floor(Math.random() * options.length);
-  //   const selectedScript = options[index];
-  //   console.log('switch to:', selectedScript);
-  //   things.forEach(thing => thing.set({ selectedScript }));
-  // }, 1000);
-
-  $layout.addComponent({
-    render() {
-      const filetree = filesystem.getTree();
-      return html`
-        <div
-          style="
-            display: flex;
-            flex-direction: row;
-            height: calc(100vh - 38px);
-          "
-        >
-          <sw-scripting
+  function renderApp() {
+    render(html`
+      <div class="controller-layout">
+        <header>
+          <h1>${client.config.app.name} | ${client.role}</h1>
+          <sw-audit .client="${client}"></sw-audit>
+        </header>
+        <section>
+          <sw-editor
             style="width: 50%;"
-            .pluginScripting="${scripting}";
-            .pluginFilesystem="${filesystem}"
-          ></sw-scripting>
-          <div style="width: 50%; overflow: scroll;">
-            ${Array.from(things).map(state => {
+            .plugin=${scripting}
+          ></sw-editor>
+          <sc-separator></sc-separator>
+          <div style="width: 50%">
+            ${repeat(things, state => state.get('id'), state => {
               return html`
                 <sw-thing-controls
-                  .state=${state}
-                  .pluginScripting=${scripting}
+                  .thingState=${state}
+                  .scriptCollection=${scriptCollection}
                 ></sw-thing-controls>
-              `
+              `;
             })}
           </div>
-        </div>
-      `
-    }
-  });
+        </section>
+      </div>
+    `, $container);
+  }
+
+  renderApp();
 }
 
 launcher.execute(main, {

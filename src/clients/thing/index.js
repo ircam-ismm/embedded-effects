@@ -1,241 +1,170 @@
 import '@soundworks/helpers/polyfills.js';
+import { hostname } from 'node:os';
 import { Client } from '@soundworks/core/client.js';
-import launcher from '@soundworks/helpers/launcher.js';
+import { loadConfig, launcher } from '@soundworks/helpers/node.js';
 
-import { loadConfig } from '../../utils/load-config.js';
-import createLayout from './layout.js';
+import PluginScriptingClient from '@soundworks/plugin-scripting/client.js';
 
-import pluginScripting from '@soundworks/plugin-scripting/client.js';
+import {
+  AudioContext,
+  GainNode,
+  mediaDevices,
+  MediaStreamAudioSourceNode,
+  AnalyserNode,
+} from 'node-web-audio-api';
 
-import { AudioContext, GainNode, OscillatorNode, mediaDevices, MediaStreamAudioSourceNode, AnalyserNode } from 'node-web-audio-api';
+import SubGraphHost from './SubGraphHost.js';
 
 // - General documentation: https://soundworks.dev/
 // - API documentation:     https://soundworks.dev/api
 // - Issue Tracker:         https://github.com/collective-soundworks/soundworks/issues
 // - Wizard & Tools:        `npx soundworks`
 
-const audioContext = new AudioContext();
-
-const analysisBufferSize = 1024;
-const analysisBufferDry = new Float32Array(analysisBufferSize);
-const analysisBufferWet = new Float32Array(analysisBufferSize);
-
-class ProcessNode {
-  constructor() {
-    this.input = new GainNode(audioContext);
-    this.output = new GainNode(audioContext);
-    this.gain = this.output.gain;
-    this.output.gain.value = 0;
-  }
-  
-  connectIn(source) {
-    source.connect(this.input);
-  }
-
-  connectOut(destination) {
-    this.output.connect(destination);
-  }
-
-  fadein(duration) {
-    const now = audioContext.currentTime;
-    this.output.gain.linearRampToValueAtTime(1, now + duration);
-  }
-
-  fadeout(duration) {
-    const now = audioContext.currentTime;
-    this.output.gain.linearRampToValueAtTime(0, now + duration);
-  }
-
-  disconnect() {
-    this.input.disconnect();
-    this.output.disconnect();
-  }
-
-  process(func) {
-    func(audioContext, this.input, this.output);
-  }
-}
-
-//cf https://signalsmith-audio.co.uk/writing/2021/cheap-energy-crossfade/#cross-fading-curves-amplitude-preserving-cross-fade
-function crossfadeCurves() {
-  const steps = 50;
-  const curveIn = new Float32Array(steps);
-  const curveOut = new Float32Array(steps);
-  for (let s = 0; s < steps; s++) {
-    const t = s/steps;
-    const val = t*t*t*(3-2*t);
-    curveIn[s] = val;
-    curveOut[s] = 1-curveIn[s];
-  }
-  return [curveIn, curveOut];
-}
-
 async function bootstrap() {
-  /**
-   * Load configuration from config files and create the soundworks client
-   */
   const config = loadConfig(process.env.ENV, import.meta.url);
   const client = new Client(config);
 
-  /**
-   * Register some soundworks plugins, you will need to install the plugins
-   * before hand (run `npx soundworks` for help)
-   */
-  // client.pluginManager.register('my-plugin', plugin);
-  client.pluginManager.register('scripting', pluginScripting);
+  client.pluginManager.register('scripting', PluginScriptingClient);
 
-  /**
-   * Register the soundworks client into the launcher
-   *
-   * Automatically restarts the process when the socket closes or when an
-   * uncaught error occurs in the program.
-   */
   launcher.register(client);
 
-  /**
-   * Launch application
-   */
   await client.start();
 
-  // create application layout (which mimics the client-side API)
-  const $layout = createLayout(client);
+  const scripting = await client.pluginManager.get('scripting');
+  const thing = await client.stateManager.create('thing', { id: hostname() });
 
-  // ...and do your own stuff!
-  const microphoneStream = await mediaDevices.getUserMedia({ audio: true });
-  
-  const streamSource = new MediaStreamAudioSourceNode(audioContext, {
-    mediaStream: microphoneStream,
-  });
-
+  // create audio graph
+  const audioContext = new AudioContext();
+  // pre script graph
+  const mediaStream = await mediaDevices.getUserMedia({ audio: true });
+  const streamSource = new MediaStreamAudioSourceNode(audioContext, { mediaStream });
   const inputGain = new GainNode(audioContext);
+  const analyserDry = new AnalyserNode(audioContext);
+  streamSource.connect(inputGain)
+  inputGain.connect(analyserDry);
+
+  // post script graph
   const outputGain = new GainNode(audioContext);
-
-  const analyzerDry = new AnalyserNode(audioContext);
-  const analyzerWet = new AnalyserNode(audioContext);
-  const fadeTime = 0.02;
-  const [curveIn, curveOut] = crossfadeCurves();
-  let activeNodes = new Set();
-  
-  streamSource.connect(inputGain);
-  inputGain.connect(analyzerDry);
   outputGain.connect(audioContext.destination);
+  // this will be connected to the user defined graph output
+  const analyserWet = new AnalyserNode(audioContext);
 
-  const synthScripting = await client.pluginManager.get('scripting');
-  const thingState = await client.stateManager.create('thing');
-  // let controllerState;
-  let unsubscribeScript;
+  let subGraphHost = null;
 
-  inputGain.gain.value = thingState.get('inputGain');
-
-  thingState.onUpdate(async updates => {
-    if ('inputGain' in updates) {
-      const now = audioContext.currentTime;
-      inputGain.gain.setTargetAtTime(updates.inputGain, now, 0.02);
+  function clearsubGraphHost() {
+    if (subGraphHost === null) {
+      return;
     }
-    if ('outputGain' in updates) {
-      const now = audioContext.currentTime;
-      outputGain.gain.setTargetAtTime(updates.outputGain, now, 0.02);
-    }
-    if ('monitoringActive' in updates && updates.monitoringActive) {
-      getVizData();
-    }
-    if ('selectedScript' in updates) {
-      if (unsubscribeScript) {
-        unsubscribeScript();
-      }
-      if (updates.selectedScript === null) {
-        const now = audioContext.currentTime;
 
-        activeNodes.forEach(activeNode => {
-          // activeNode.fadeout(fadeTime);
-          activeNode.gain.setValueCurveAtTime(curveOut, now, fadeTime);
-          setTimeout(() => {
-            activeNode.disconnect();
-            activeNodes.delete(activeNode);
-          }, fadeTime * 1000);
-        });
-      } else {
-        const script = await synthScripting.attach(updates.selectedScript);
-        // console.log(script._state.getValues());
-  
-        unsubscribeScript = script.onUpdate(async () => {
-          const scriptImport = await script.import();
-          const processFunc = scriptImport.process;
-          const now = audioContext.currentTime;
-  
-          activeNodes.forEach(activeNode => {
-            // activeNode.fadeout(fadeTime);
-            activeNode.gain.setValueCurveAtTime(curveOut, now, fadeTime);
-            setTimeout(() => {
-              activeNode.disconnect();
-              activeNodes.delete(activeNode);
-            }, fadeTime * 1000);
-          });
+    // keep old reference around until it is fully disconnected
+    const prevSubGraphHost = subGraphHost;
+    subGraphHost = null;
 
-          const processNode = new ProcessNode();
-          processNode.connectIn(inputGain);
-          processNode.connectOut(outputGain);
-          processNode.connectOut(analyzerWet);
-          processNode.process(processFunc);
-          processNode.gain.setValueCurveAtTime(curveIn, now, fadeTime);
-          activeNodes.add(processNode);
-        }, true);
-      }
-    }
-  }, true);
+    prevSubGraphHost.fadeOut(1);
+    setTimeout(() => prevSubGraphHost.disconnect(), 1000);
+  }
 
-  // client.stateManager.observe(async (stateName, stateId) => {
-  //   if (stateName === 'controller') {
-  //     controllerState = await client.stateManager.attach(stateName, stateId);
 
-  //     // controllerState.onUpdate(async updates => {
-  //     // }, true);
-  //   }
-  // });
+  // for signal feedback
+  const analysisBufferSize = 1024;
+  const analysisBufferDry = new Float32Array(analysisBufferSize);
+  const analysisBufferWet = new Float32Array(analysisBufferSize);
 
-  const getVizData = () => {
-    if (thingState.get('monitoringActive')) {
-      analyzerDry.getFloatTimeDomainData(analysisBufferDry);
-      analyzerWet.getFloatTimeDomainData(analysisBufferWet);
+  function processFeedbackForSignal() {
+    if (thing.get('monitoring')) {
+      analyserDry.getFloatTimeDomainData(analysisBufferDry);
+      analyserWet.getFloatTimeDomainData(analysisBufferWet);
+
       const now = audioContext.currentTime;
       let minD = 1;
       let maxD = -1;
       let minW = 1;
       let maxW = -1;
-  
+
       for (let j = 0; j < analysisBufferSize; j++) {
         const valD = analysisBufferDry[j];
         minD = Math.min(minD, valD);
         maxD = Math.max(maxD, valD);
-  
+
         const valW = analysisBufferWet[j];
         minW = Math.min(minW, valW);
         maxW = Math.max(maxW, valW);
       }
-      thingState.set({
+      thing.set({
         vizDataDry: {
           time: now,
           min: minD,
           max: maxD
         },
         vizDataWet: {
-          time: now, 
+          time: now,
           min: minW,
           max: maxW
         }
       });
-      const deltaT = analysisBufferSize / audioContext.sampleRate * 1000;
-      setTimeout(getVizData, deltaT);
+
+      const dt = analysisBufferSize / audioContext.sampleRate * 1000;
+      setTimeout(processFeedbackForSignal, dt);
     }
   }
-}
 
+  thing.onUpdate(async updates => {
+    for (let [name, value] of Object.entries(updates)) {
+      switch (name) {
+        case 'inputGain': {
+          inputGain.gain.setTargetAtTime(value, audioContext.currentTime, 0.02);
+          break;
+        }
+        case 'outputGain': {
+          outputGain.gain.setTargetAtTime(value, audioContext.currentTime, 0.02);
+          break;
+        }
+        case 'selectedScript': {
+          clearsubGraphHost();
+
+          if (value === null) {
+            return;
+          }
+
+          const script = await scripting.attach(value);
+
+          script.onUpdate(async updates => {
+            if (updates.nodeBuild) {
+              clearsubGraphHost();
+
+              const { buildGraph, cleanup } = await script.import();
+
+              if (!buildGraph) {
+                const msg = `Invalid script: The script "${script.name}" does not export a "buildGraph" function`;
+                script.reportRuntimeError(new Error(msg));
+                return;
+              }
+
+              subGraphHost = new SubGraphHost(audioContext);
+              subGraphHost.exec(buildGraph, cleanup);
+              // connect to the rest of the graph
+              inputGain.connect(subGraphHost.input);
+              subGraphHost.connect(outputGain);
+              subGraphHost.connect(analyserWet);
+              subGraphHost.fadeIn(1);
+            }
+          }, true);
+        }
+        case 'monitoring': {
+          if (value) {
+            processFeedbackForSignal();
+          }
+          break;
+        }
+      }
+    }
+  }, true);
+}
 
 // The launcher allows to fork multiple clients in the same terminal window
 // by defining the `EMULATE` env process variable
-// e.g. `EMULATE=10 npm run watch-process thing` to run 10 clients side-by-side
+// e.g. `EMULATE=10 npm run watch thing` to run 10 clients side-by-side
 launcher.execute(bootstrap, {
   numClients: process.env.EMULATE ? parseInt(process.env.EMULATE) : 1,
   moduleURL: import.meta.url,
-  restartOnError: true,
 });

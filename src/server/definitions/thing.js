@@ -3,7 +3,7 @@ export default {
     type: 'string',
     default: ''
   },
-  monitoringActive: {
+  monitoring: {
     type: 'boolean',
     default: false,
   },
@@ -17,11 +17,7 @@ export default {
     default: null,
     nullable: true
   },
-  vizData: {
-    type: 'any',
-    default: null,
-    nullable: true
-  },
+
   inputGain: {
     type: 'float',
     default: 1.,
@@ -35,4 +31,4 @@ export default {
     default: null,
     nullable: true,
   },
-}
+};

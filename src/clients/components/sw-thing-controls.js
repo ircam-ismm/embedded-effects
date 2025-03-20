@@ -7,12 +7,6 @@ import '@ircam/sc-components/sc-select.js';
 import '@ircam/sc-components/sc-text.js';
 
 class SwThingControls extends LitElement {
-  static properties = {
-    monitoring: {
-      state: true,
-    }
-  }
-
   static styles = css`
     :host {
       display: flex;
@@ -38,7 +32,7 @@ class SwThingControls extends LitElement {
 
     .slider {
       height: 100%;
-      width: 100px;
+      width: 60px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -50,10 +44,10 @@ class SwThingControls extends LitElement {
     }
 
     .slider sc-text {
-      width: 100px;
-      min-width: 100px;
+      width: 100%;
       border: 1px solid #232323;
       border-radius: 0;
+      text-align: center;
     }
 
     .monitoring {
@@ -89,60 +83,21 @@ class SwThingControls extends LitElement {
   constructor() {
     super();
 
-    this._id = null;
-    this._state = null;
-    this._inputGainValue = 1;
-    this._outputGainValue = 1;
-    this._monitoring = false;
-    this.pluginScripting = null;
+    this.thingState = null;
+    this.scriptCollection = null;
   }
-
-  get state() {
-    return this._state;
-  }
-
-  set state(value) {
-    this._state = value;
-    this._id = value.get('id');
-    this._inputGainValue = value.get('inputGain');
-    this._outputGainValue = value.get('outputGain');
-
-    this._state.onUpdate(updates => {
-      if ('selectedScript' in updates) {
-        this.requestUpdate();
-      }
-    }, true);
-  }
-
-  get monitoring() {
-    return this._monitoring;
-  }
-
-  set monitoring(value) {
-    this._monitoring = value;
-
-    if (this._state) {
-      this._state.set({ monitoringActive: value });
-    }
-
-    this.requestUpdate();
-  }
-
 
   render() {
-    const selectedScript = this._state.get('selectedScript');
-
-    const options = this.pluginScripting.getList();
-    options.unshift('select script');
-
     return html`
       <div class="infos">
-        <h1>thing id ${this._id}</h1>
+        <sc-text>${this.thingState.get('id')}</sc-text>
         <sc-select
-          options="${JSON.stringify(options)}"
+          .options="${this.scriptCollection.get('name')}"
+          .value=${this.thingState.get('selectedScript')}
+          placeholder="select script"
           @change=${e => {
-            const selectedScript = e.target.value === "select script" ? null : e.target.value;
-            this._state.set({ selectedScript });
+            const selectedScript = e.target.value ? e.target.value : null;
+            this.thingState.set({ selectedScript });
           }}
         ></sc-select>
       </div>
@@ -151,40 +106,36 @@ class SwThingControls extends LitElement {
           min=0
           max=10
           orientation="vertical"
-          value=${this._inputGainValue}
-          @input=${e => {
-            if (this._state) this._state.set({ inputGain: e.detail.value });
-          }}
+          value=${this.thingState.get('inputGain')}
+          @input=${e => this.thingState.set({ inputGain: e.detail.value })}
         ></sc-slider>
-        <sc-text>input gain</sc-text>
+        <sc-text>In</sc-text>
       </div>
       <div class="slider">
         <sc-slider
           min=0
           max=10
           orientation="vertical"
-          value=${this._outputGainValue}
-          @input=${e => {
-            if (this._state) this._state.set({ outputGain: e.detail.value });
-          }}
+          value=${this.thingState.get('outputGain')}
+          @input=${e => this.thingState.set({ outputGain: e.detail.value })}
         ></sc-slider>
-        <sc-text>output gain</sc-text>
+        <sc-text>Out</sc-text>
       </div>
       <div class="monitoring">
         <div class="select">
           <sc-text>monitoring</sc-text>
           <sc-toggle
-            @change="${e => this.monitoring = e.detail.value}"
+            @change=${e => this.thingState.set({ monitoring: e.detail.value })}
           ></sc-toggle>
         </div>
         <div class="viz">
-          ${this._monitoring
+          ${this.thingState.get('monitoring')
             ? html`
                 <div>
                   <sw-signal-viz
                     id="viz-dry"
                     stateParam="vizDataDry"
-                    .state=${this._state}
+                    .state=${this.thingState}
                   ></sw-signal-viz>
                   <p>dry signal/input</p>
                 </div>
@@ -192,7 +143,7 @@ class SwThingControls extends LitElement {
                   <sw-signal-viz
                     id="viz-wet"
                     stateParam="vizDataWet"
-                    .state=${this._state}
+                    .state=${this.thingState}
                   ></sw-signal-viz>
                   <p>wet signal/output</p>
                 <div>
@@ -201,7 +152,33 @@ class SwThingControls extends LitElement {
           }
         </div>
       </div>
-    `
+    `;
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    this.unsubscribeThingStateUpdate = this.thingState.onUpdate(updates => {
+      if ('vizDataWet' in updates || 'vizDataDry' in updates) {
+        return;
+      }
+
+      this.requestUpdate();
+    });
+
+    this.unsubscribeScriptCollectionAttach = this.scriptCollection.onAttach(() => this.requestUpdate());
+    this.unsubscribeScriptCollectionDetach = this.scriptCollection.onDetach(() => this.requestUpdate());
+    this.unsubscribeScriptCollectionUpdate = this.scriptCollection.onUpdate(() => this.requestUpdate());
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+
+    this.unsubscribeThingStateUpdate();
+
+    this.unsubscribeScriptCollectionAttach();
+    this.unsubscribeScriptCollectionDetach();
+    this.unsubscribeScriptCollectionUpdate();
   }
 }
 

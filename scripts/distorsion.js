@@ -1,4 +1,4 @@
-export function process(audioContext,input,output){
+export function buildGraph(audioContext,input,output){
     var oscillatorNode = audioContext.createOscillator();
     var oscillatorGainNode = audioContext.createGain();
     

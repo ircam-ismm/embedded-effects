@@ -7,7 +7,7 @@ for (let i = 0; i < curve.length; i++) {
   curve[i] = value;
 }
 
-export function process(audioContext, input, output) {
+export function buildGraph(audioContext, input, output) {
   const gain = 50;
   
   const postGain = audioContext.createGain();
