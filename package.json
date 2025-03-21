@@ -14,7 +14,8 @@
     "watch": "soundworks-build -p",
     "watch:inspect": "soundworks-build -i -p",
     "watch:sass": "sass --watch src/clients/styles:.build/public/css",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "postinstall": "cp -R node_modules/wam-community/dist/plugins/wimmics/utils/sdk node_modules/wam-community/dist/plugins/wimmics/utils/sdk-parammgr/src/"
   },
   "dependencies": {
     "@ircam/sc-components": "^3.0.0-alpha.50",
@@ -34,8 +35,8 @@
   },
   "devDependencies": {
     "@ircam/eslint-config": "^1.2.1",
-    "@soundworks/build": "^1.0.0-alpha.1",
-    "@soundworks/create": "^1.0.0-alpha.23",
+    "@soundworks/build": "^5.0.0",
+    "@soundworks/create": "^5.0.0",
     "concurrently": "^8.2.2",
     "eslint": "^9.15.0",
     "sass": "^1.77.1"

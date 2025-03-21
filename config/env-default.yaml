@@ -1,7 +1,7 @@
 type: development
 port: 8000
-subpath: ''
-serverAddress: ''
+baseUrl: ''
+serverAddress: '127.0.0.1'
 useHttps: false
 httpsInfos:
   cert: null
@@ -10,4 +10,3 @@ auth:
   clients: []
   login: ''
   password: ''
-

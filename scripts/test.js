@@ -1,41 +1,27 @@
+import initializeWamHost from '@webaudiomodules/sdk/src/initializeWamHost.js';
+import WAM from 'wam-community/dist/plugins/wimmics/stonephaser/index.js';
+
 export async function buildGraph(audioContext, input, output) {
-    const hostGroupId = await setupWamHost(audioContext);
+  // const { default: WAM } = await import('wam-community/dist/plugins/wimmics/stonephaser/index.js');
 
-    //const wamURIReverb = "wam-community/dist/plugins/wimmics/sweetWah/index.js";
-    //const reverbInstance = await loadDynamicComponent(wamURIReverb, hostGroupId);
+  console.log('>> execute buildGraph');
+  console.log(WAM);
 
-    const wamURIStonePhaser = "wam-community/dist/plugins/wimmics/stonephaser/index.js";
-    const stonePhaserInstance = await loadDynamicComponent(wamURIStonePhaser, hostGroupId);
+  const [ hostGroupId ] = await initializeWamHost(audioContext);
+  console.log('>> hostGroupId:', hostGroupId);
+  let instance;
+  try {
+    // instance = await WAM.createInstance(hostGroupId, audioContext);
+    instance = new WAM(hostGroupId, audioContext);
+    instance._baseURL = process.cwd() + '/node_modules/wam-community/dist/plugins/wimmics/stonephaser/';
+    instance._descriptorUrl = process.cwd() + '/node_modules/wam-community/dist/plugins/wimmics/stonephaser/descriptor.json';
+    await instance.initialize({});
+  } catch (err) {
+    // console.log(err.base.slice(0, 100));
+    console.log(err.message.slice(0, 100));
+    return;
+  }
 
-    //const { default: initializeStonePhaser } = await import("@wam-community/dist/plugins/wimmics/stonephaser/index.js");
-    //const stonePhaserInstance = await initializeStonePhaser(audioContext, hostGroupId);
-
-    // Build the audio graph
-    input.connect(stonePhaserInstance.audioNode);
-
-    stonePhaserInstance.audioNode.connect(output);
-}
-
-async function setupWamHost(audioContext) {
-    // Init WamEnv, load SDK etc.
-	//const { default: initializeWamHost } = await import("https://www.webaudiomodules.com/sdk/2.0.0-alpha.6/src/initializeWamHost.js");
-    const { default: initializeWamHost } = await import("@webaudiomodules/sdk/src/initializeWamHost.js");
-
-	const [hostGroupId] = await initializeWamHost(audioContext);
-
-    // hostGroupId is useful to group several WAM plugins together....
-    return hostGroupId;
-}
-
-async function loadDynamicComponent(wamURI, hostGroupId) {
-    try {
-    // Import WAM
-      const { default: WAM } = await import("wam-community/dist/plugins/wimmics/stonephaser/index.js");
-      // Create a new instance of the plugin, pass groupId
-      const wamInstance = await WAM.createInstance(hostGroupId, audioContext);
-
-      return wamInstance;
-    } catch (error) {
-      console.error('Erreur lors du chargement du Web Component :', error);
-    }
+  console.log('++ WAM OK:', instance.descriptor.name, instance.audioNode);
+  input.connect(instance.audioNode).connect(output);
 }

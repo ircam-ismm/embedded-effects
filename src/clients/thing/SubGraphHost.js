@@ -32,7 +32,11 @@ export default class SubGraphHost {
   }
 
   exec(buildGraph, cleanup) {
-    buildGraph(this.audioContext, this.input, this.output);
+    try {
+      buildGraph(this.audioContext, this.input, this.output);
+    } catch (err) {
+      console.log('coucou');
+    }
     this.cleanup = cleanup;
   }
 }

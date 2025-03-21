@@ -3,6 +3,7 @@ import { hostname } from 'node:os';
 import { Client } from '@soundworks/core/client.js';
 import { loadConfig, launcher } from '@soundworks/helpers/node.js';
 
+import './wam-polyfill.js';
 import PluginScriptingClient from '@soundworks/plugin-scripting/client.js';
 
 import {
@@ -159,6 +160,8 @@ async function bootstrap() {
       }
     }
   }, true);
+
+  thing.set('selectedScript', 'test.js');
 }
 
 // The launcher allows to fork multiple clients in the same terminal window

@@ -2,7 +2,7 @@ name: embedded-effects-v2
 author: ""
 clients:
   controller:
-    target: browser
+    runtime: browser
     default: true
   thing:
-    target: node
+    runtime: node

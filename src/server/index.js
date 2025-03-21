@@ -1,6 +1,6 @@
 import '@soundworks/helpers/polyfills.js';
 import { Server } from '@soundworks/core/server.js';
-import { loadConfig } from '@soundworks/helpers/node.js';
+import { loadConfig, configureHttpRouter } from '@soundworks/helpers/server.js';
 
 import '../utils/catch-unhandled-errors.js';
 
@@ -23,9 +23,9 @@ console.log(`
 `);
 
 const server = new Server(config);
-server.useDefaultApplicationTemplate();
+configureHttpRouter(server);
 
-server.stateManager.registerSchema('thing', thingDefinition);
+server.stateManager.defineClass('thing', thingDefinition);
 
 server.pluginManager.register('scripting', PluginScriptingServer, {
   dirname: 'scripts',
