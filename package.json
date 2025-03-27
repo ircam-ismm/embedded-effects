@@ -22,7 +22,7 @@
     "@ircam/sc-scheduling": "^1.0.0",
     "@soundworks/core": "^5.0.0",
     "@soundworks/helpers": "^5.0.0",
-    "@soundworks/plugin-scripting": "^5.0.0",
+    "@soundworks/plugin-scripting": "^5.0.1",
     "@soundworks/plugin-sync": "^5.0.0",
     "@webaudiomodules/api": "^2.0.0-alpha.6",
     "@webaudiomodules/sdk": "^0.0.12",

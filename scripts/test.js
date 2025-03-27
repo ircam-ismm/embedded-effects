@@ -1,9 +1,7 @@
 import initializeWamHost from '@webaudiomodules/sdk/src/initializeWamHost.js';
-import WAM from 'wam-community/dist/plugins/wimmics/stonephaser/index.js';
+import WAM from 'wam-community/dist/plugins/wimmics/blipper/index.js';
 
 export async function buildGraph(audioContext, input, output) {
-  // const { default: WAM } = await import('wam-community/dist/plugins/wimmics/stonephaser/index.js');
-
   console.log('>> execute buildGraph');
   console.log(WAM);
 
@@ -11,13 +9,8 @@ export async function buildGraph(audioContext, input, output) {
   console.log('>> hostGroupId:', hostGroupId);
   let instance;
   try {
-    // instance = await WAM.createInstance(hostGroupId, audioContext);
-    instance = new WAM(hostGroupId, audioContext);
-    instance._baseURL = process.cwd() + '/node_modules/wam-community/dist/plugins/wimmics/stonephaser/';
-    instance._descriptorUrl = process.cwd() + '/node_modules/wam-community/dist/plugins/wimmics/stonephaser/descriptor.json';
-    await instance.initialize({});
+    instance = await WAM.createInstance(hostGroupId, audioContext);
   } catch (err) {
-    // console.log(err.base.slice(0, 100));
     console.log(err.message.slice(0, 100));
     return;
   }

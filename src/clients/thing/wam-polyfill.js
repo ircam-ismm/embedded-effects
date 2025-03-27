@@ -6,11 +6,15 @@ for (let name in webaudio) {
   globalThis[name] = webaudio[name];
 }
 
+// this can be simply fixed by calling `globalThis.URL` instead of window.URL
 globalThis.window = { URL };
+
 globalThis.HTMLElement = class {};
 globalThis.customElements = {
-  define: function() {}
+  define: function() {},
+  get: function() {},
 };
+
 globalThis.fetch = (pathname) => {
   pathname = pathname.replace(/^file:\/\//, '');
 
