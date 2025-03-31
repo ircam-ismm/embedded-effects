@@ -7,7 +7,14 @@ for (let name in webaudio) {
 }
 
 // this can be simply fixed by calling `globalThis.URL` instead of window.URL
-globalThis.window = { URL };
+globalThis.window = {
+  URL,
+  setTimeout
+};
+
+globalThis.document = {
+  querySelector: function() {}
+};
 
 globalThis.HTMLElement = class {};
 globalThis.customElements = {
@@ -16,23 +23,20 @@ globalThis.customElements = {
 };
 
 globalThis.fetch = (pathname) => {
+  console.log('fetch:', pathname);
   pathname = pathname.replace(/^file:\/\//, '');
 
   return new Promise(resolve => {
     if (!fs.existsSync(pathname)) {
-      resolve({
-        ok: false,
-        msg: `file ${pathname} not found`,
-      });
-    } else {
-      const buffer = fs.readFileSync(pathname);
-
-      resolve({
-        ok: true,
-        text: () => buffer.toString(),
-        json: () => JSON.parse(buffer.toString()),
-        arrayBuffer: () => buffer,
-      });
+      throw new Error(`Cannot fetch file: ${pathname}, file does not exists`);
     }
+
+    const buffer = fs.readFileSync(pathname);
+    resolve({
+      ok: true,
+      text: () => buffer.toString(),
+      json: () => JSON.parse(buffer.toString()),
+      arrayBuffer: () => buffer,
+    });
   });
 };
