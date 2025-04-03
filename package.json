@@ -30,6 +30,7 @@
     "burns-audio-wam": "^0.2.54",
     "json5": "^2.2.3",
     "lit": "^3.1.2",
+    "mime": "^4.0.7",
     "node-web-audio-api": "^1.0.0",
     "wam-community": "^0.4.9"
   },

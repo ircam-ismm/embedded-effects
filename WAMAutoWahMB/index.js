@@ -77,7 +77,10 @@ export default class FaustPlugin extends WebAudioModule {
 		const { moduleId, instanceId } = this;
 		const dspName = this.descriptor.name;
 		const dspMeta = await (await fetch(`${this._baseURL}/dsp-meta.json`)).json();
+    const coucou = await fetch(`${this._baseURL}/dsp-module.wasm`);
+    console.log(coucou);
 		const dspModule = await WebAssembly.compileStreaming(await fetch(`${this._baseURL}/dsp-module.wasm`));
+    console.log(dspModule);
 		/** @type {FaustDspDistribution} */
 		const faustDsp = { dspMeta, dspModule };
 		if (this.descriptor.faustMeta?.effect) {

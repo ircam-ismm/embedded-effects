@@ -1,6 +1,6 @@
 import initializeWamHost from '@webaudiomodules/sdk/src/initializeWamHost.js';
-import WAM from 'wam-community/dist/plugins/wimmics/stonephaser/index.js';
-// import WAM from 'wam-community/dist/plugins/wimmics/WAMAutoWahMB/index.js';
+// import WAM from 'wam-community/dist/plugins/wimmics/stonephaser/index.js';
+import WAM from '../WAMAutoWahMB/index.js';
 
 export async function buildGraph(audioContext, input, output) {
   console.log('>> execute buildGraph');
@@ -12,7 +12,8 @@ export async function buildGraph(audioContext, input, output) {
   try {
     instance = await WAM.createInstance(hostGroupId, audioContext);
   } catch (err) {
-    console.log(err.message.slice(0, 100));
+    console.log(err);
+    console.log(err.message.slice(0, 200));
     return;
   }
 

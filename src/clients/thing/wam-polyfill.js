@@ -1,6 +1,8 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { URL } from 'node:url'
 import webaudio from 'node-web-audio-api';
+import mime from 'mime';
 
 for (let name in webaudio) {
   globalThis[name] = webaudio[name];
@@ -31,12 +33,15 @@ globalThis.fetch = (pathname) => {
       throw new Error(`Cannot fetch file: ${pathname}, file does not exists`);
     }
 
+    // create real Response object, so that WebAssembly.compileStreaming can work
+    const extname = path.extname(pathname);
     const buffer = fs.readFileSync(pathname);
-    resolve({
-      ok: true,
-      text: () => buffer.toString(),
-      json: () => JSON.parse(buffer.toString()),
-      arrayBuffer: () => buffer,
-    });
+
+    const headers = new Headers();
+    headers.append('Content-Type', mime.getType(extname));
+
+    const res = new Response(buffer, { status: 200, headers });
+
+    resolve(res);
   });
 };
