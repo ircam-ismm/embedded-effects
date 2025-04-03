@@ -1,0 +1,21 @@
+{
+    "identifier": "wimmics.autowahmb",
+    "name": "Auto Wah MB",
+    "vendor": "WIMMICS",
+    "description": "",
+    "version": "2.75.15",
+    "apiVersion": "2.0.0",
+    "keywords": ["autowah", "effect", "modulation"],
+    "isInstrument": false,
+    "website": "",
+    "thumbnail": "screenshot.png",
+    "hasAudioInput": true,
+    "hasAudioOutput": true,
+    "hasMidiInput": false,
+    "hasMidiOutput": false,
+    "faustMeta": {
+        "poly": false,
+        "fft": false,
+        "effect": null
+    }
+}
