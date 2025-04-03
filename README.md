@@ -2,6 +2,26 @@
 
 Thanks for using soundworks!
 
+Erreur obtenue avec le nouveau WAM : WAMAutoWahMB
+
+```bash
+Element defined
+wam-host-437.08478593826294
+node:internal/wasm_web_api:24
+      throw new ERR_INVALID_ARG_TYPE(
+            ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "source" argument must be an instance of Response or an Promise resolving to Response. Received an instance of Object
+    at node:internal/wasm_web_api:24:13 {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v20.10.0
+```
+
+
+
+
 ## Links / Resources
 
 - [General Documentation / Tutorials](https://soundworks.dev/)
