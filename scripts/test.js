@@ -18,5 +18,6 @@ export async function buildGraph(audioContext, input, output) {
   }
 
   console.log('++ WAM OK:', instance.descriptor.name, instance.audioNode);
+  console.log(await instance.audioNode.getParameterInfo());
   input.connect(instance.audioNode).connect(output);
 }

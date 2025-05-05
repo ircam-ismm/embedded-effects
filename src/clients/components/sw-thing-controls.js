@@ -1,6 +1,7 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 
 import './sw-signal-viz.js';
+import './sw-shared-state.js';
 import '@ircam/sc-components/sc-slider.js';
 import '@ircam/sc-components/sc-toggle.js';
 import '@ircam/sc-components/sc-select.js';
@@ -11,7 +12,7 @@ class SwThingControls extends LitElement {
     :host {
       display: flex;
       width: 100%;
-      height: 200px;
+      height: 350px;
       border-bottom: 1px #343434 solid;
       flex-direction: row;
       align-content: stretch;
@@ -23,7 +24,6 @@ class SwThingControls extends LitElement {
       padding: 5px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
     }
 
     .infos h1 {
@@ -85,6 +85,8 @@ class SwThingControls extends LitElement {
 
     this.thingState = null;
     this.scriptCollection = null;
+    this.client = null;
+    this.scriptControlState = null;
   }
 
   render() {
@@ -100,6 +102,10 @@ class SwThingControls extends LitElement {
             this.thingState.set({ selectedScript });
           }}
         ></sc-select>
+        ${this.scriptControlState !== null
+          ? html`<sw-shared-state .sharedState=${this.scriptControlState}></sw-shared-state>`
+          : nothing
+        }
       </div>
       <div class="slider">
         <sc-slider
@@ -159,16 +165,26 @@ class SwThingControls extends LitElement {
     super.connectedCallback();
 
     this.unsubscribeThingStateUpdate = this.thingState.onUpdate(updates => {
+      // do not perform whole rendering on these data
       if ('vizDataWet' in updates || 'vizDataDry' in updates) {
         return;
       }
 
+      if ('defineScriptSharedStateClass' in updates) {
+        this._updateThingControlState();
+      }
+
       this.requestUpdate();
-    });
+    }, true);
+
+    if (this.thingState.get('selectedScript') !== null) {
+      this._updateThingControlState();
+    }
 
     this.unsubscribeScriptCollectionAttach = this.scriptCollection.onAttach(() => this.requestUpdate());
     this.unsubscribeScriptCollectionDetach = this.scriptCollection.onDetach(() => this.requestUpdate());
     this.unsubscribeScriptCollectionUpdate = this.scriptCollection.onUpdate(() => this.requestUpdate());
+
   }
 
   disconnectedCallback() {
@@ -179,6 +195,17 @@ class SwThingControls extends LitElement {
     this.unsubscribeScriptCollectionAttach();
     this.unsubscribeScriptCollectionDetach();
     this.unsubscribeScriptCollectionUpdate();
+  }
+
+  async _updateThingControlState() {
+    const stateName = `script:${this.thingState.get('id')}`
+    this.scriptControlState = await this.client.stateManager.attach(stateName);
+    this.scriptControlState.onDetach(() => {
+      this.scriptControlState = null;
+      this.requestUpdate();
+    });
+
+    this.requestUpdate();
   }
 }
 

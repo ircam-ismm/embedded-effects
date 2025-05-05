@@ -55,6 +55,7 @@ async function main($container) {
             ${repeat(things, state => state.get('id'), state => {
               return html`
                 <sw-thing-controls
+                  .client=${client}
                   .thingState=${state}
                   .scriptCollection=${scriptCollection}
                 ></sw-thing-controls>

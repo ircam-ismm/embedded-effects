@@ -31,4 +31,8 @@ export default {
     default: null,
     nullable: true,
   },
+  defineScriptSharedStateClass: {
+    type: 'any',
+    event: true,
+  },
 };

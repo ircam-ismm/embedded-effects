@@ -13,6 +13,9 @@ import {
   MediaStreamAudioSourceNode,
   AnalyserNode,
 } from 'node-web-audio-api';
+import {
+  isFunction,
+} from '@ircam/sc-utils';
 
 import SubGraphHost from './SubGraphHost.js';
 
@@ -52,7 +55,7 @@ async function bootstrap() {
 
   let subGraphHost = null;
 
-  function clearsubGraphHost() {
+  function clearSubGraphHost() {
     if (subGraphHost === null) {
       return;
     }
@@ -121,7 +124,8 @@ async function bootstrap() {
           break;
         }
         case 'selectedScript': {
-          clearsubGraphHost();
+          // executed when we go from one script to the other
+          clearSubGraphHost();
 
           if (value === null) {
             return;
@@ -131,9 +135,9 @@ async function bootstrap() {
 
           script.onUpdate(async updates => {
             if (updates.nodeBuild) {
-              clearsubGraphHost();
+              clearSubGraphHost();
 
-              const { buildGraph, cleanup } = await script.import();
+              const { getDescription, buildGraph, cleanup } = await script.import();
 
               if (!buildGraph) {
                 const msg = `Invalid script: The script "${script.name}" does not export a "buildGraph" function`;
@@ -141,8 +145,23 @@ async function bootstrap() {
                 return;
               }
 
+              // create a shared state so that we can control the script in real-time
+              const className = `script:${thing.get('id')}`;
+              let classDescription = {};
+
+              if (isFunction(getDescription)) {
+                classDescription = await getDescription();
+              }
+
+              // request server to define the class, has one client can run one script
+              // at a time, we can safely reuse the same class name
+              await thing.set('defineScriptSharedStateClass', { className, classDescription });
+              // the class has been (re-)created, we can safely attach to the shared state
+              const scriptState = await client.stateManager.attach(className);
+              console.log('scriptState:', scriptState.getValues());
+
               subGraphHost = new SubGraphHost(audioContext);
-              subGraphHost.exec(buildGraph, cleanup);
+              subGraphHost.exec(buildGraph, scriptState, cleanup);
               // connect to the rest of the graph
               inputGain.connect(subGraphHost.input);
               subGraphHost.connect(outputGain);
@@ -161,7 +180,7 @@ async function bootstrap() {
     }
   }, true);
 
-  thing.set('selectedScript', 'test.js');
+  thing.set('selectedScript', 'delay.js');
 }
 
 // The launcher allows to fork multiple clients in the same terminal window

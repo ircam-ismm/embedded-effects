@@ -32,3 +32,26 @@ server.pluginManager.register('scripting', PluginScriptingServer, {
 });
 
 await server.start();
+
+server.stateManager.registerUpdateHook('thing', async (updates, currentValues) => {
+  if ('selectedScript' in updates && updates.selectedScript === null) {
+    // let's just delete the script shared state class
+    server.stateManager.deleteClass(`script:${currentValues.id}`);
+  }
+
+  if ('defineScriptSharedStateClass' in updates) {
+    // delete and recreate the script shared state class corresponding to a given client
+    const { className, classDescription } = updates.defineScriptSharedStateClass;
+
+    if (server.stateManager.isClassDefined(className)) {
+      // this will also destroy all associated states
+      server.stateManager.deleteClass(className);
+    }
+
+    server.stateManager.defineClass(className, classDescription);
+    // we create the state here, so that both thing and controller can attach to the
+    // state without concurrency issues
+    const _ = await server.stateManager.create(className);
+    console.log(_.getValues());
+  }
+});

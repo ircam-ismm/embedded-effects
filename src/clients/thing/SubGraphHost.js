@@ -31,12 +31,14 @@ export default class SubGraphHost {
     this.output.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + duration);
   }
 
-  exec(buildGraph, cleanup) {
+  exec(buildGraph, scriptState, cleanup) {
     try {
-      buildGraph(this.audioContext, this.input, this.output);
+      buildGraph(this.audioContext, scriptState, this.input, this.output);
     } catch (err) {
-      console.log('coucou');
+      console.log('Failed to build graph');
+      console.log(err);
     }
+
     this.cleanup = cleanup;
   }
 }
