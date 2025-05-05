@@ -20,7 +20,7 @@
   "dependencies": {
     "@ircam/sc-components": "^3.0.0-alpha.50",
     "@ircam/sc-scheduling": "^1.0.0",
-    "@soundworks/core": "^5.0.0",
+    "@soundworks/core": "^5.2.0",
     "@soundworks/helpers": "^5.0.0",
     "@soundworks/plugin-scripting": "^5.0.2",
     "@soundworks/plugin-sync": "^5.0.0",
