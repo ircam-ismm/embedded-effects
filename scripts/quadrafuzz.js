@@ -1,4 +1,4 @@
-export function buildGraph(audioContext, input, output) {
+export function buildGraph(audioContext,state, input, output) {
     const lowpassFrequency = 147;
     const midlowpassFrequency = 587;
     const midhighpassFrequency = 2490;

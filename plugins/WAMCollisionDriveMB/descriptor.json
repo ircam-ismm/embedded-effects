@@ -1,0 +1,21 @@
+{
+    "identifier": "fr.grame.faust.collisiondrive",
+    "name": "CollisionDriveMB",
+    "vendor": "WIMMICS",
+    "description": "Variant of the CollisionDrive effect",
+    "version": "2.75.15",
+    "apiVersion": "2.0.0",
+    "keywords": ["overdrive", "distorsion", "drive"],
+    "isInstrument": false,
+    "website": "",
+    "thumbnail": "screenshot.png",
+    "hasAudioInput": true,
+    "hasAudioOutput": true,
+    "hasMidiInput": false,
+    "hasMidiOutput": false,
+    "faustMeta": {
+        "poly": false,
+        "fft": false,
+        "effect": null
+    }
+}

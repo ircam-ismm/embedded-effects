@@ -1,0 +1,257 @@
+{
+    "name": "CollisionDrive",
+    "filename": "CollisionDrive.dsp",
+    "version": "2.74.8",
+    "compile_options": "-lang wasm-i -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 2",
+    "include_pathnames": [
+        "/share/faust",
+        "/usr/local/share/faust",
+        "/usr/share/faust",
+        "."
+    ],
+    "size": 1096,
+    "code": "iDfz",
+    "inputs": 1,
+    "outputs": 1,
+    "meta": [
+        {
+            "basics_lib_name": "Faust Basic Element Library"
+        },
+        {
+            "basics_lib_tabulateNd": "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>"
+        },
+        {
+            "basics_lib_version": "1.19.1"
+        },
+        {
+            "category": "Distortion"
+        },
+        {
+            "compile_options": "-single -scal -I /usr/share/project/"
+        },
+        {
+            "filename": "CollisionDrive.dsp"
+        },
+        {
+            "filters_lib_fir_author": "Julius O. Smith III"
+        },
+        {
+            "filters_lib_fir_copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters_lib_fir_license": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters_lib_iir_author": "Julius O. Smith III"
+        },
+        {
+            "filters_lib_iir_copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters_lib_iir_license": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters_lib_lowpass0_highpass1": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters_lib_name": "Faust Filters Library"
+        },
+        {
+            "filters_lib_tf1_author": "Julius O. Smith III"
+        },
+        {
+            "filters_lib_tf1_copyright": "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>"
+        },
+        {
+            "filters_lib_tf1_license": "MIT-style STK-4.3 license"
+        },
+        {
+            "filters_lib_version": "1.3.0"
+        },
+        {
+            "id": "collison"
+        },
+        {
+            "library_path0": "/usr/share/faust/stdfaust.lib"
+        },
+        {
+            "library_path1": "/usr/share/faust/basics.lib"
+        },
+        {
+            "library_path2": "/usr/share/faust/signals.lib"
+        },
+        {
+            "library_path3": "/usr/share/faust/maths.lib"
+        },
+        {
+            "library_path4": "/usr/share/faust/platform.lib"
+        },
+        {
+            "library_path5": "/usr/share/faust/filters.lib"
+        },
+        {
+            "library_path6": "/usr/share/faust/reducemaps.lib"
+        },
+        {
+            "maths_lib_author": "GRAME"
+        },
+        {
+            "maths_lib_copyright": "GRAME"
+        },
+        {
+            "maths_lib_license": "LGPL with exception"
+        },
+        {
+            "maths_lib_name": "Faust Math Library"
+        },
+        {
+            "maths_lib_version": "2.8.0"
+        },
+        {
+            "name": "CollisionDrive"
+        },
+        {
+            "platform_lib_name": "Generic Platform Library"
+        },
+        {
+            "platform_lib_version": "1.3.0"
+        },
+        {
+            "reducemaps_lib_author": "Yann Orlarey"
+        },
+        {
+            "reducemaps_lib_copyright": "Grame and Yann Orlarey"
+        },
+        {
+            "reducemaps_lib_license": "LGPL with exception"
+        },
+        {
+            "reducemaps_lib_name": "Reduce Library"
+        },
+        {
+            "reducemaps_lib_version": "1.2.0"
+        },
+        {
+            "samplerate": "96000"
+        },
+        {
+            "signals_lib_name": "Faust Signal Routing Library"
+        },
+        {
+            "signals_lib_version": "1.6.0"
+        },
+        {
+            "version": "2.75.15"
+        }
+    ],
+    "ui": [
+        {
+            "type": "vgroup",
+            "label": "CollisionDrive",
+            "items": [
+                {
+                    "type": "vslider",
+                    "label": "Bright",
+                    "shortname": "Bright",
+                    "address": "/CollisionDrive/Bright",
+                    "index": 604,
+                    "meta": [
+                        {
+                            "name": "Bright"
+                        },
+                        {
+                            "style": "knob"
+                        }
+                    ],
+                    "init": 0.5,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "Gate",
+                    "shortname": "Gate",
+                    "address": "/CollisionDrive/Gate",
+                    "index": 504,
+                    "meta": [
+                        {
+                            "name": "Gate"
+                        },
+                        {
+                            "style": "knob"
+                        }
+                    ],
+                    "init": -15,
+                    "min": -30,
+                    "max": -10,
+                    "step": 1
+                },
+                {
+                    "type": "hslider",
+                    "label": "attack",
+                    "shortname": "attack",
+                    "address": "/CollisionDrive/attack",
+                    "index": 576,
+                    "meta": [
+                        {
+                            "name": "Attack"
+                        },
+                        {
+                            "style": "knob"
+                        }
+                    ],
+                    "init": 3,
+                    "min": 0,
+                    "max": 5,
+                    "step": 0.1
+                },
+                {
+                    "type": "checkbox",
+                    "label": "bypass",
+                    "shortname": "bypass",
+                    "address": "/CollisionDrive/bypass",
+                    "index": 436
+                },
+                {
+                    "type": "hslider",
+                    "label": "drive",
+                    "shortname": "drive",
+                    "address": "/CollisionDrive/drive",
+                    "index": 584,
+                    "meta": [
+                        {
+                            "name": "Drive"
+                        },
+                        {
+                            "style": "knob"
+                        }
+                    ],
+                    "init": 0.1,
+                    "min": 0,
+                    "max": 1,
+                    "step": 0.01
+                },
+                {
+                    "type": "hslider",
+                    "label": "level",
+                    "shortname": "level",
+                    "address": "/CollisionDrive/level",
+                    "index": 448,
+                    "meta": [
+                        {
+                            "name": "Level"
+                        },
+                        {
+                            "style": "knob"
+                        }
+                    ],
+                    "init": -10,
+                    "min": -20,
+                    "max": 4,
+                    "step": 0.1
+                }
+            ]
+        }
+    ]
+}

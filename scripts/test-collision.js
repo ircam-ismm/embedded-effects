@@ -1,6 +1,8 @@
 import initializeWamHost from '@webaudiomodules/sdk/src/initializeWamHost.js';
 // import WAM from 'wam-community/dist/plugins/wimmics/stonephaser/index.js';
-import WAM from '../plugins/WAMAutoWahMB/index.js';
+import WAMWah from '../plugins/WAMAutoWahMB/index.js';
+import WAMCollisionDrive from '../plugins/WAMCollisionDriveMB/index.js';
+
 
 /*
 {
@@ -52,27 +54,31 @@ export async function getDescription() {
 
 export async function buildGraph(audioContext, state, input, output) {
   console.log('>> execute buildGraph');
-  console.log(WAM);
+  // console.log(WAMCollisionDrive);
 
   const [hostGroupId] = await initializeWamHost(audioContext);
   console.log('>> hostGroupId:', hostGroupId);
-  let instance;
+  let instanceAutoWah, instanceCollisionDrive;
   try {
-    instance = await WAM.createInstance(hostGroupId, audioContext);
+    instanceCollisionDrive = await WAMCollisionDrive.createInstance(hostGroupId, audioContext);
+    instanceAutoWah = await WAMWah.createInstance(hostGroupId, audioContext);
   } catch (err) {
     console.log(err);
     console.log(err.message.slice(0, 200));
     return;
   }
 
-  console.log('++ WAM OK:', instance.descriptor.name, instance.audioNode);
+  console.log('++ WAM OK:', instanceAutoWah.descriptor.name, instanceAutoWah.audioNode);
 
-  console.log(await instance.audioNode.getParameterInfo());
+  console.log(await instanceCollisionDrive.audioNode.getParameterInfo());
 
   const inputGain = audioContext.createGain();
   inputGain.gain.value = 5; // Mix dry and wet signals
 
-  input.connect(inputGain).connect(instance.audioNode).connect(output);
+  input.connect(inputGain)
+       .connect(instanceCollisionDrive.audioNode)
+       .connect(instanceAutoWah.audioNode)
+       .connect(output);
 
   // bind state updates to audio nodes
   state.onUpdate(updates => {
@@ -81,7 +87,7 @@ export async function buildGraph(audioContext, state, input, output) {
     for (let [key, value] of Object.entries(updates)) {
       switch (key) {
         case '/AUtoWahMB/Autowah_Level': {
-          instance.audioNode.setParameterValues({
+          instanceAutoWah.audioNode.setParameterValues({
               '/AUtoWahMB/Autowah_Level': {
                 value: value
               }
@@ -89,7 +95,7 @@ export async function buildGraph(audioContext, state, input, output) {
           break;
         }
         case '/AUtoWahMB/bypass': {
-          instance.audioNode.setParameterValues({
+          instanceAutoWah.audioNode.setParameterValues({
             '/AUtoWahMB/bypass': {
               value: value
             }
