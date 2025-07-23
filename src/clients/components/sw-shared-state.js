@@ -13,7 +13,6 @@ class SwSharedState extends LitElement {
   }
 
   render() {
-    console.log('coucou');
     const parts = [];
     const description = this.sharedState.getDescription();
 

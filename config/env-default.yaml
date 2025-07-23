@@ -1,7 +1,7 @@
 type: development
 port: 8000
 baseUrl: ''
-serverAddress: 'buffy.local'
+serverAddress: ''
 useHttps: false
 httpsInfos:
   cert: null
